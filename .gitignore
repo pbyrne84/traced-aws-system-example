@@ -1,0 +1,5 @@
+build.sbt*.class
+*.log
+.idea
+.bsp
+target
