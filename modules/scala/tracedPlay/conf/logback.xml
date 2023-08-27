@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="false" debug="false">
+  <conversionRule conversionWord="traceID" converterClass="kamon.logback.LogbackTraceIDConverter"/>
+
+  <appender name="json" class="ch.qos.logback.core.ConsoleAppender">
+    <layout class="ch.qos.logback.contrib.json.classic.JsonLayout">
+      <jsonFormatter
+              class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
+        <prettyPrint>true</prettyPrint>
+      </jsonFormatter>
+      <timestampFormat>yyyy-MM-dd' 'HH:mm:ss.SSS</timestampFormat>
+    </layout>
+  </appender>
+
+  <logger name="com.gargoylesoftware.htmlunit" level="ERROR" />
+  <logger name="com.elsevier" level="INFO" />
+  <logger name="akka" level="ERROR" />
+  <logger name="com.elsevier.bos.atlas.selfserviceapi.http.client" level="ERROR" />
+
+  <root level="INFO">
+    <appender-ref ref="json"/>
+  </root>
+</configuration>
