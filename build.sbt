@@ -10,7 +10,7 @@ ThisBuild / useSuperShell := false
 
 //addCompilerPlugin("io.tryp" % "splain" % "0.5.8" cross CrossVersion.patch)
 
-scalacOptions := List(
+/*scalacOptions := List(
   "-deprecation", // Emit warning and location for usages of deprecated APIs.
   "-explaintypes", // Explain type errors in more detail.
   "-feature", // Emit warning and location for usages of features that should be imported explicitly.
@@ -47,11 +47,15 @@ scalacOptions := List(
   "-Ywarn-macros:after",
   "-P:splain:implicits:true",
   "-P:splain:color:false"
+)*/
+
+ThisBuild / libraryDependencySchemes ++= Seq(
+  "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always
 )
 
 val circeVersion = "0.14.3"
-val akkaVersion = "2.6.8"
-val akkaHttpVersion = "10.2.10"
+val akkaVersion = "2.8.0"
+val akkaHttpVersion = "10.5.0"
 
 //not to be used in ci, intellij has got a bit bumpy in the format on save on optimize imports across the project
 val formatAndTest =
@@ -61,6 +65,19 @@ val formatAndTest =
 
 lazy val commonSettings = Seq(
   scalaVersion := scala213Version,
+  libraryDependencies ++= Vector(
+    "ch.qos.logback.contrib" % "logback-json-classic" % "0.1.5",
+    "ch.qos.logback.contrib" % "logback-jackson" % "0.1.5",
+    "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
+    "com.chuusai" %% "shapeless" % "2.3.10",
+//    "io.circe" %% "circe-parser" % circeVersion,
+//    "io.circe" %% "circe-generic" % circeVersion,
+//    "org.scalatest" %% "scalatest" % "3.2.9" % Test,
+//    "com.typesafe.akka" %% "akka-http" % akkaHttpVersion % Test,
+//    "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % Test,
+//    "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % Test,
+//    "de.heikoseeberger" %% "akka-http-circe" % "1.39.2" % Test
+  ),
   scalacOptions ++= Seq(
     "-encoding",
     "utf8",
@@ -85,16 +102,6 @@ lazy val commonSettings = Seq(
     .value
 )
 
-libraryDependencies ++= Vector(
-  "io.circe" %% "circe-parser" % circeVersion,
-  "io.circe" %% "circe-generic" % circeVersion,
-  "org.scalatest" %% "scalatest" % "3.2.9" % Test,
-  "com.typesafe.akka" %% "akka-http" % akkaHttpVersion % Test,
-  "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % Test,
-  "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % Test,
-  "de.heikoseeberger" %% "akka-http-circe" % "1.39.2" % Test
-)
-
 Test / test := (Test / test)
   .dependsOn(Compile / scalafmtCheck)
   .dependsOn(Test / scalafmtCheck)
@@ -102,13 +109,28 @@ Test / test := (Test / test)
 
 val scalaTest = "org.scalatest" %% "scalatest" % "3.2.13"
 
-lazy val tracedPlay = (project in file("modules/scala/tracedPlay")).settings(
-  name := "tracedPlay",
-  commonSettings,
-  libraryDependencies ++= Vector(
-    scalaTest % Test
+lazy val tracedPlay = (project in file("modules/scala/tracedPlay"))
+  .settings(
+    name := "tracedPlay",
+    commonSettings,
+    fork := true,
+    javaAgents += "io.kamon" % "kanela-agent" % "1.0.17" % "runtime;compile",
+    libraryDependencies ++= Vector(
+      guice,
+      //  "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
+      //    "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion,
+      //   "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion,
+      "de.heikoseeberger" %% "akka-http-circe" % "1.39.2",
+      "io.kamon" %% "kamon-akka-http" % "2.5.9",
+      "io.kamon" %% "kamon-scala-future" % "2.5.9",
+      "io.kamon" %% "kamon-play" % "2.6.0",
+      "io.kamon" %% "kamon-zipkin" % "2.6.0",
+      "io.kamon" %% "kamon-logback" % "2.6.1",
+      "com.typesafe.play" %% "play" % "2.8.19",
+      scalaTest % Test
+    )
   )
-)
+  .enablePlugins(PlayScala, JavaAgent)
 
 lazy val tracedAkkaHttp = (project in file("modules/scala/tracedAkkaHttp"))
   .settings(
@@ -131,3 +153,5 @@ lazy val allScala = (project in file("."))
     commonSettings,
     publish / skip := true
   )
+
+addCommandAlias("runplay", "tracedPlay/run")

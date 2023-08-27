@@ -1,1 +1,6 @@
 *.scala text eol=lf
+*.sbt text eol=lf
+routes text eol=lf
+messages text eol=lf
+*.conf text eol=lf
+*.xml text eol=lf
