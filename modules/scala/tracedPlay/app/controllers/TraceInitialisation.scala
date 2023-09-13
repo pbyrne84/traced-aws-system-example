@@ -30,20 +30,26 @@ trait TraceInitialisation extends LogTracing {
   )(call: => Future[Result])(implicit ec: ExecutionContext): Future[Result] = {
 
     val (httpRequest: HttpRequest, maybeStrictEntity) = createRequestEntry(request)
-    Kamon.runWithContextEntry(LoggingLayout.ActionKey, action) {
-      Kamon.runWithContextEntry(LoggingLayout.CurrentRequestKey, Some(httpRequest)) {
-        Kamon.runWithContextEntry(LoggingLayout.EntityKey, maybeStrictEntity) {
-          //stops multiple calls firing off
-          val eventualResultFromCall = call
-          logger.info("start of processing")
-          eventualResultFromCall.onComplete {
-            case Failure(exception) =>
-              logger.error(s"Failed processing request: $request", exception)
-            case Success(_: Result) =>
-              logger.info(s"Successfully processed request without exception: $request")
-          }
+    val span = Kamon.spanBuilder("operation").start()
 
-          eventualResultFromCall
+    Kamon.runWithSpan(span) {
+      Kamon.runWithContextEntry(LoggingLayout.ParentSpanKey, Kamon.currentSpan().parentId.string) {
+        Kamon.runWithContextEntry(LoggingLayout.ActionKey, action) {
+          Kamon.runWithContextEntry(LoggingLayout.CurrentRequestKey, Some(httpRequest)) {
+            Kamon.runWithContextEntry(LoggingLayout.EntityKey, maybeStrictEntity) {
+              //stops multiple calls firing off
+              val eventualResultFromCall = call
+              logger.info("start of processing")
+              eventualResultFromCall.onComplete {
+                case Failure(exception) =>
+                  logger.error(s"Failed processing request: $request", exception)
+                case Success(_: Result) =>
+                  logger.info(s"Successfully processed request without exception: $request")
+              }
+
+              eventualResultFromCall
+            }
+          }
         }
       }
     }
