@@ -1,8 +1,9 @@
 package controllers
 
+import akka.http.scaladsl.model.headers.RawHeader
 import akka.util.ByteString
 import kamon.Kamon
-import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpMethod, HttpRequest}
+import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpHeader, HttpMethod, HttpRequest}
 import logging.{LogTracing, LoggingLayout}
 import play.api.mvc.{AnyContent, MessagesRequest, Request, Result}
 
@@ -37,7 +38,7 @@ trait TraceInitialisation extends LogTracing {
         Kamon.runWithContextEntry(LoggingLayout.ActionKey, action) {
           Kamon.runWithContextEntry(LoggingLayout.CurrentRequestKey, Some(httpRequest)) {
             Kamon.runWithContextEntry(LoggingLayout.EntityKey, maybeStrictEntity) {
-              //stops multiple calls firing off
+              //stops multiple calls firing off as detaches from call by name =>
               val eventualResultFromCall = call
               logger.info("start of processing")
               eventualResultFromCall.onComplete {
@@ -70,7 +71,9 @@ trait TraceInitialisation extends LogTracing {
       None
     }
 
-    (HttpRequest(method = HttpMethod.custom(request.method.toUpperCase), uri = request.uri), maybeStrictEntity)
+    val headers = request.headers.headers.map(header => RawHeader(header._1, header._2))
+    (HttpRequest(method = HttpMethod.custom(request.method.toUpperCase), uri = request.uri, headers = headers),
+     maybeStrictEntity)
 
   }
 }
