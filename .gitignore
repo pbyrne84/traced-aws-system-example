@@ -3,3 +3,4 @@ build.sbt*.class
 .idea
 .bsp
 target
+*.jar
