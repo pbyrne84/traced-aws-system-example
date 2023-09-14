@@ -148,7 +148,8 @@
 ```
 
 
-** Child request to /test - kamonSpanId:f4a845998693bbc8 is now in kamonParentSpanId as this is how Zipkin/Jaeger draws call chains
+**Child request to /test - kamonSpanId:f4a845998693bbc8 is now in kamonParentSpanId as this is how Zipkin/Jaeger draws call chains**
+
 ```json
 {
   "timestamp" : "2023-09-14 08:45:07.541",
