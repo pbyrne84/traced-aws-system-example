@@ -3,4 +3,5 @@
 # ~~~~
 
 # Home page
-GET        /                                                    controllers.ExampleTracedController.index()
+GET        /                                                    controllers.ExampleTracedController.index
+GET        /test                                                controllers.ExampleTracedController.test

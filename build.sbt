@@ -127,6 +127,7 @@ lazy val tracedPlay = (project in file("modules/scala/tracedPlay"))
       "io.kamon" %% "kamon-zipkin" % "2.6.0",
       "io.kamon" %% "kamon-logback" % "2.6.1",
       "com.typesafe.play" %% "play" % "2.8.19",
+      ws,
       scalaTest % Test
     )
   )

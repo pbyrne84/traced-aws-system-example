@@ -27,6 +27,9 @@ trait LogTracing extends StrictLogging {
     val showHomePage: ControllerLogAction =
       s"${controllerPrefix}show-homepage".asControllerAction
 
+    val testRequestCallBack: ControllerLogAction =
+      s"${controllerPrefix}test-request-call-back".asControllerAction
+
   }
 
   object actionMarker {
