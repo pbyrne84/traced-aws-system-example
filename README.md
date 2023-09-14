@@ -1,5 +1,19 @@
 # traced-aws-system-example
 
+Download zipkin from 
+
+**https://zipkin.io/pages/quickstart.html**
+
+<https://search.maven.org/remote_content?g=io.zipkin&a=zipkin-server&v=LATEST&c=exec>
+
+And then just start with 
+
+```shell
+java -jar zipkin-server-2.24.3-exec.jar
+```
+2.24.3 may be an older version.
+
+
 ## Example play log output with tracing auto added across request headers with mdc also auto propagated across futures
 
 

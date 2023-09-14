@@ -31,7 +31,7 @@ trait TraceInitialisation extends LogTracing {
   )(call: => Future[Result])(implicit ec: ExecutionContext): Future[Result] = {
 
     val (httpRequest: HttpRequest, maybeStrictEntity) = createRequestEntry(request)
-    val span = Kamon.spanBuilder("operation").start()
+    val span = Kamon.spanBuilder(action).start()
 
     Kamon.runWithSpan(span) {
       Kamon.runWithContextEntry(LoggingLayout.ParentSpanKey, Kamon.currentSpan().parentId.string) {
