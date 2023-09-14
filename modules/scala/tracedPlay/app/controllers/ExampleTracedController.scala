@@ -16,13 +16,13 @@ class ExampleTracedController @Inject()(ws: WSClient, cc: ControllerComponents)(
     }
   }
 
-  private def childCall: Future[Unit] = {
+  private def childCall: Future[Boolean] = {
     wrapActionWithLogging(actionMarker.childAction) {
       Future {
         logger.info("banana")
-      }.map { _ =>
+      }.flatMap { _ =>
         val eventualResponse: Future[WSResponse] = ws.url("http://localhost:9000/test").get()
-        eventualResponse
+        eventualResponse.map(_ => true)
       }
     }
 
