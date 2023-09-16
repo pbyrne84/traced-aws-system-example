@@ -3,5 +3,6 @@
 # ~~~~
 
 # Home page
-GET        /                                                    controllers.ExampleTracedController.index
-GET        /test                                                controllers.ExampleTracedController.test
+GET        /                                                 controllers.ExampleTracedController.testSuccess
+GET        /test-fail                                        controllers.ExampleTracedController.testFailure
+

@@ -10,7 +10,7 @@ class ExampleTracedController @Inject()(ws: WSClient, cc: ControllerComponents)(
     extends AbstractController(cc)
     with TraceInitialisation {
 
-  def index: Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
+  def testSuccess: Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
     traceAsync(controllerActionMarker.showHomePage, request) {
       childCall.flatMap(_ => Future.successful(Ok("It works!")))
     }
@@ -21,17 +21,27 @@ class ExampleTracedController @Inject()(ws: WSClient, cc: ControllerComponents)(
       Future {
         logger.info("banana")
       }.flatMap { _ =>
-        val eventualResponse: Future[WSResponse] = ws.url("http://localhost:9000/test").get()
+        val eventualResponse: Future[WSResponse] = ws.url("http://localhost:8080/test-success").get()
         eventualResponse.map(_ => true)
       }
     }
 
   }
 
-  def test: Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
+  def testFailure: Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
     traceAsync(controllerActionMarker.testRequestCallBack, request) {
+
       logger.info("child test call")
-      Future.successful(Ok("moooo"))
+
+      val eventualResponse: Future[WSResponse] = ws.url("http://localhost:8080/test-fail").get()
+      eventualResponse.map { result =>
+        if (result.status >= 500) {
+          InternalServerError(s"moooo ${result.status}")
+        } else {
+          Ok(s"moooo ${result.status}")
+        }
+
+      }
     }
   }
 

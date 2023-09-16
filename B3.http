@@ -1,6 +1,30 @@
 GET http://localhost:9000/
 Accept: application/json
 X-B3-Sampled: 1
+X-B3-TraceId: 463ac35c9f6413ad48485a3953bb6122
+X-B3-SpanId: a2fb4a1d1a96d312
+###
+
+GET http://localhost:9000/test-fail
+Accept: application/json
+X-B3-Sampled: 1
+X-B3-TraceId: 463ac35c9f6413ad48485a3953bb6123
+X-B3-SpanId: a2fb4a1d1a96d312
+###
+
+
+
+GET http://localhost:8080/test-success
+Accept: application/json
+X-B3-Sampled: 1
 X-B3-TraceId: 463ac35c9f6413ad48485a3953bb6127
 X-B3-SpanId: a2fb4a1d1a96d312
 ###
+
+GET http://localhost:8080/test-fail
+Accept: application/json
+X-B3-Sampled: 1
+X-B3-TraceId: 463ac35c9f6413ad48485a3953bb6128
+X-B3-SpanId: a2fb4a1d1a96d312
+###
+
