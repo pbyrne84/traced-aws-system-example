@@ -115,14 +115,11 @@ lazy val tracedPlay = (project in file("modules/scala/tracedPlay"))
     commonSettings,
     fork := true,
     javaAgents += "io.kamon" % "kanela-agent" % "1.0.17" % "runtime;compile",
-    libraryDependencies ++= Vector(
+    libraryDependencies ++= List(
       guice,
-      //  "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
-      //    "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion,
-      //   "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion,
       "de.heikoseeberger" %% "akka-http-circe" % "1.39.2",
-      "io.kamon" %% "kamon-akka-http" % "2.5.9",
-      "io.kamon" %% "kamon-scala-future" % "2.5.9",
+      "io.kamon" %% "kamon-akka-http" % "2.6.0",
+      "io.kamon" %% "kamon-scala-future" % "2.6.0",
       "io.kamon" %% "kamon-play" % "2.6.0",
       "io.kamon" %% "kamon-zipkin" % "2.6.0",
       "io.kamon" %% "kamon-logback" % "2.6.1",
@@ -136,8 +133,27 @@ lazy val tracedPlay = (project in file("modules/scala/tracedPlay"))
 lazy val tracedAkkaHttp = (project in file("modules/scala/tracedAkkaHttp"))
   .settings(
     name := "tracedAkkaHttp",
-    commonSettings
+    commonSettings,
+    fork := true,
+    javaAgents += "io.kamon" % "kanela-agent" % "1.0.17" % "runtime;compile",
+    libraryDependencies ++= List(
+      "io.circe" %% "circe-parser" % circeVersion,
+      "io.circe" %% "circe-generic" % circeVersion,
+      "de.heikoseeberger" %% "akka-http-circe" % "1.39.2",
+      "com.fasterxml.jackson.core" % "jackson-databind" % "2.15.1",
+      "ch.qos.logback.contrib" % "logback-json-classic" % "0.1.5",
+      "ch.qos.logback.contrib" % "logback-jackson" % "0.1.5",
+      "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
+      "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion,
+      "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion,
+      "io.kamon" %% "kamon-zipkin" % "2.6.0",
+      "io.kamon" %% "kamon-logback" % "2.6.1",
+      "io.kamon" %% "kamon-akka-http" % "2.6.0",
+      "io.kamon" %% "kamon-scala-future" % "2.6.0",
+      scalaTest % Test
+    )
   )
+  .enablePlugins(JavaAgent)
 
 lazy val tracedZioHttp = (project in file("modules/scala/tracedZioHttp"))
   .settings(
@@ -156,3 +172,4 @@ lazy val allScala = (project in file("."))
   )
 
 addCommandAlias("runplay", "tracedPlay/run")
+addCommandAlias("runAkkaHttp", "tracedAkkaHttp/run")
