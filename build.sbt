@@ -69,14 +69,7 @@ lazy val commonSettings = Seq(
     "ch.qos.logback.contrib" % "logback-json-classic" % "0.1.5",
     "ch.qos.logback.contrib" % "logback-jackson" % "0.1.5",
     "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
-    "com.chuusai" %% "shapeless" % "2.3.10",
-//    "io.circe" %% "circe-parser" % circeVersion,
-//    "io.circe" %% "circe-generic" % circeVersion,
-//    "org.scalatest" %% "scalatest" % "3.2.9" % Test,
-//    "com.typesafe.akka" %% "akka-http" % akkaHttpVersion % Test,
-//    "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % Test,
-//    "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % Test,
-//    "de.heikoseeberger" %% "akka-http-circe" % "1.39.2" % Test
+    "com.chuusai" %% "shapeless" % "2.3.10"
   ),
   scalacOptions ++= Seq(
     "-encoding",
@@ -150,18 +143,42 @@ lazy val tracedAkkaHttp = (project in file("modules/scala/tracedAkkaHttp"))
       "io.kamon" %% "kamon-logback" % "2.6.1",
       "io.kamon" %% "kamon-akka-http" % "2.6.0",
       "io.kamon" %% "kamon-scala-future" % "2.6.0",
+      "net.logstash.logback" % "logstash-logback-encoder" % "7.3",
+      "ch.qos.logback" % "logback-classic" % "1.4.7",
       scalaTest % Test
     )
   )
   .enablePlugins(JavaAgent)
 
+val openTelemetryVersion = "1.24.0"
+val zioLoggingVersion = "2.1.12"
+
 lazy val tracedZioHttp = (project in file("modules/scala/tracedZioHttp"))
   .settings(
     name := "tracedZioHttp",
+    mainClass := Some("com.github.pbyrne84.ziozipkin.ZIOHttpZipkinApp"),
     commonSettings,
     libraryDependencies ++= Vector(
-      scalaTest % "provided"
+      "ch.qos.logback" % "logback-classic" % "1.4.7",
+      "dev.zio" %% "zio" % "2.0.18",
+      "dev.zio" %% "zio-http" % "3.0.0-RC2",
+      "io.opentracing" % "opentracing-util" % "0.33.0",
+      "dev.zio" %% "zio-opentelemetry" % "2.0.3",
+      "dev.zio" %% "zio-opentracing" % "2.0.3",
+      "org.slf4j" % "jul-to-slf4j" % "2.0.5",
+      "net.logstash.logback" % "logstash-logback-encoder" % "7.3",
+      "dev.zio" %% "zio-logging-slf4j" % zioLoggingVersion,
+      "dev.zio" %% "zio-logging-slf4j-bridge" % zioLoggingVersion,
+      "io.opentelemetry" % "opentelemetry-extension-trace-propagators" % openTelemetryVersion,
+      "io.opentelemetry" % "opentelemetry-exporter-zipkin" % openTelemetryVersion,
+      "dev.zio" %% "zio-test" % "2.0.19" % Test
     )
+  )
+
+lazy val runAll = (project in file("modules/scala/runAll"))
+  .settings(
+    name := "tracedZioHttp",
+    commonSettings
   )
 
 lazy val allScala = (project in file("."))
@@ -173,3 +190,4 @@ lazy val allScala = (project in file("."))
 
 addCommandAlias("runplay", "tracedPlay/run")
 addCommandAlias("runAkkaHttp", "tracedAkkaHttp/run")
+addCommandAlias("runZio", "tracedZioHttp/run")
