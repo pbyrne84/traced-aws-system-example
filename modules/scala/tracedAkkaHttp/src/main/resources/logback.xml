@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="false" debug="false">
-  <conversionRule conversionWord="traceID" converterClass="kamon.logback.LogbackTraceIDConverter"/>
+  <conversionRule conversionWord="X-B3-TraceId" converterClass="kamon.instrumentation.logback.tools.TraceIDConverter"/>
+  <conversionRule conversionWord="X-B3-SpanId" converterClass="kamon.instrumentation.logback.tools.SpanIDConverter" />
 
   <appender name="json" class="ch.qos.logback.core.ConsoleAppender">
-    <layout class="ch.qos.logback.contrib.json.classic.JsonLayout">
-      <jsonFormatter
-              class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
-        <prettyPrint>true</prettyPrint>
-      </jsonFormatter>
-      <timestampFormat>yyyy-MM-dd' 'HH:mm:ss.SSS</timestampFormat>
-    </layout>
+    <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+      <providers>
+        <timestamp/>
+        <version/>
+        <message/>
+        <loggerName/>
+        <threadName/>
+        <logLevel/>
+        <mdc/>
+        <stackTrace />
+      </providers>
+    </encoder>
   </appender>
 
   <logger name="akka" level="ERROR" />
