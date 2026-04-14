@@ -1,7 +1,7 @@
 lazy val projectName = "traced-aws-system-example"
 
 name := projectName
-val scala213Version = "2.13.10"
+val scala213Version = "2.13.18"
 scalaVersion := scala213Version
 
 ThisBuild / turbo := false
@@ -160,7 +160,7 @@ lazy val tracedZioHttp = (project in file("modules/scala/tracedZioHttp"))
     commonSettings,
     libraryDependencies ++= Vector(
       "ch.qos.logback" % "logback-classic" % "1.4.7",
-      "dev.zio" %% "zio" % "2.0.18",
+      "dev.zio" %% "zio" % "2.1.25",
       "dev.zio" %% "zio-http" % "3.0.0-RC2",
       "io.opentracing" % "opentracing-util" % "0.33.0",
       "dev.zio" %% "zio-opentelemetry" % "2.0.3",

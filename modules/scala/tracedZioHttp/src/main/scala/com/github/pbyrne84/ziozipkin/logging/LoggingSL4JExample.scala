@@ -10,7 +10,7 @@ import zio.http.Header
 import zio.logging.LogAnnotation
 import zio.logging.backend.SLF4J
 import zio.telemetry.opentelemetry.Tracing
-import zio.{Cause, ZIO, ZIOAppDefault, ZIOHack, ZLayer}
+import zio.{Cause, ZIO, ZIOAppDefault, ZLayer}
 
 import java.util.logging.{Level, Logger}
 
@@ -83,14 +83,15 @@ class LoggingSL4JExample {
           // similarly to how the zio.logging.backend.SL4J.closeLogEntry operates.
           // ZIOHack as the name implies is a hack. It abuses package name to get access.
           // Definitely a less than ideal solution however adult anyone feels.
-          _ <- ZIOHack.attemptWithMdcLogging {
-            javaUtilLogger.severe(s"util meowWithMdc $getThreadName")
+          _ <- JavaLogging.attemptWithMdcLogging {
+            javaUtilLogger.severe(s"util meowWithMdcNoHack $getThreadName")
           }
+
           _ <- ZIO.attempt {
             javaUtilLogger.severe(s"util meowWithNoMdcMdc $getThreadName")
           }
-          _ <- ZIOHack.attemptWithMdcLogging(sl4jLogger.info(s"woofWithMdc $getThreadName"))
-          _ <- ZIOHack.attemptWithMdcLogging2(sl4jLogger.info(s"woofWithMdc2 $getThreadName"))
+          _ <- JavaLogging.attemptWithMdcLogging(sl4jLogger.info(s"woofWithMdc $getThreadName"))
+          _ <- JavaLogging.attemptWithMdcLogging(sl4jLogger.info(s"woofWithMdc2 $getThreadName"))
           _ <- ZIO.attempt(sl4jLogger.info(s"woofNoMdc $getThreadName"))
           a = new RuntimeException("I had problems and the ice cream didn't help")
           _ <- ZIO.logCause("dying for a cause", Cause.die(a))

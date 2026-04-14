@@ -15,7 +15,7 @@ import scala.util.{Failure, Success}
 trait TraceInitialisation extends LogTracing {
   def trace[A](action: ControllerLogAction, request: Request[AnyContent])(call: => Result): Result = {
     Kamon.runWithContextEntry(LoggingLayout.ActionKey, action) {
-      //make sure we have one action for dumb tasks
+      // make sure we have one action for dumb tasks
       logger.info(s"Running $action")
       addTraceHeadersToResult(call)
     }
@@ -38,7 +38,7 @@ trait TraceInitialisation extends LogTracing {
         Kamon.runWithContextEntry(LoggingLayout.ActionKey, action) {
           Kamon.runWithContextEntry(LoggingLayout.CurrentRequestKey, Some(httpRequest)) {
             Kamon.runWithContextEntry(LoggingLayout.EntityKey, maybeStrictEntity) {
-              //stops multiple calls firing off as detaches from call by name =>
+              // stops multiple calls firing off as detaches from call by name =>
               val eventualResultFromCall = call
               logger.info("start of processing")
               eventualResultFromCall.onComplete {
@@ -72,8 +72,10 @@ trait TraceInitialisation extends LogTracing {
     }
 
     val headers = request.headers.headers.map(header => RawHeader(header._1, header._2))
-    (HttpRequest(method = HttpMethod.custom(request.method.toUpperCase), uri = request.uri, headers = headers),
-     maybeStrictEntity)
+    (
+      HttpRequest(method = HttpMethod.custom(request.method.toUpperCase), uri = request.uri, headers = headers),
+      maybeStrictEntity
+    )
 
   }
 }

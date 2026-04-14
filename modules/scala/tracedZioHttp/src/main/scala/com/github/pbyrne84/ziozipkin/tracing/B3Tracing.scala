@@ -78,8 +78,7 @@ object B3Tracing {
   }
 
   // Not sure what really should be used at this point
-  private def defaultErrorMapper[E]: PartialFunction[E, StatusCode] = {
-    case _ =>
-      StatusCode.ERROR
+  private def defaultErrorMapper[E]: PartialFunction[E, StatusCode] = { case _ =>
+    StatusCode.ERROR
   }
 }

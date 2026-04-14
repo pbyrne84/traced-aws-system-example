@@ -6,7 +6,7 @@ import play.api.mvc._
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class ExampleTracedController @Inject()(ws: WSClient, cc: ControllerComponents)(implicit ec: ExecutionContext)
+class ExampleTracedController @Inject() (ws: WSClient, cc: ControllerComponents)(implicit ec: ExecutionContext)
     extends AbstractController(cc)
     with TraceInitialisation {
 

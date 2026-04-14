@@ -31,10 +31,12 @@ object ZioRoutesSpec extends ZIOSpecDefault {
         }
 
       }
-    ).provide(B3HTTPResponseTracing.layer,
-              ZioRoutes.routesLayer,
-              Tracing.live,
-              NonExportingTracer.live,
-              zio.Runtime.removeDefaultLoggers >>> loggingLayer)
+    ).provide(
+      B3HTTPResponseTracing.layer,
+      ZioRoutes.routesLayer,
+      Tracing.live,
+      NonExportingTracer.live,
+      zio.Runtime.removeDefaultLoggers >>> loggingLayer
+    )
 
 }
