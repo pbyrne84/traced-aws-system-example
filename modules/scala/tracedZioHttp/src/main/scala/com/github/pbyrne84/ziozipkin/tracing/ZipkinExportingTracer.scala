@@ -11,11 +11,10 @@ import io.opentelemetry.sdk.trace.`export`.SimpleSpanProcessor
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes
 import zio.{ZIO, ZLayer}
 
-/** We are not going to send the span details anywhere, we are just going to manage the creation of
-  * child spans etc.
+/** We are not going to send the span details anywhere, we are just going to manage the creation of child spans etc.
   *
-  * TracerProvider.noop().tracerBuilder("").build() build something that does not create child span
-  * ids and it makes things confusing if we are trying to see child spans etc.
+  * TracerProvider.noop().tracerBuilder("").build() build something that does not create child span ids and it makes
+  * things confusing if we are trying to see child spans etc.
   */
 object ZipkinExportingTracer extends StrictLogging {
 
