@@ -5,7 +5,7 @@ import com.github.pbyrne84.ziozipkin.tracing.{B3Tracing, HTTPResponseTracing}
 import io.opentelemetry.api.trace.{SpanId, TraceId}
 import zio.http._
 import zio.telemetry.opentelemetry.Tracing
-import zio.{ZIO, ZLayer}
+import zio.{&, Scope, ZIO, ZLayer}
 
 object B3 {
 
@@ -63,7 +63,7 @@ object TracingClient {
       method: Method = Method.GET,
       headers: Headers = Headers.empty,
       content: Body = Body.empty
-  ): ZIO[Any with Tracing with Client with TracingClient, Throwable, Response] = {
+  ): ZIO[Any with Tracing with Client & Scope with TracingClient, Throwable, Response] = {
     ZIO.service[TracingClient].flatMap(_.request(url, method, headers, content))
   }
 
@@ -81,17 +81,16 @@ class TracingClient(HTTPTracing: HTTPResponseTracing) {
       method: Method = Method.GET,
       headers: Headers = Headers.empty,
       content: Body = Body.empty
-  ): ZIO[Any with Tracing with Client, Throwable, Response] =
+  ): ZIO[Any with Tracing with Client & Scope, Throwable, Response] =
     B3Tracing.serverSpan(s"${method.toString.toLowerCase}-client-call") {
       for {
         _ <- ZIO
           .logInfo(s"calling remote service")
         appendedHeaders <- HTTPTracing.appendHeadersToResponse(headers)
+        request1 = Request(url = URL(Path(url)), method = method, headers = appendedHeaders, body = content)
+
         response <- Client.request(
-          url = url,
-          method = method,
-          headers = appendedHeaders,
-          content = content
+          request1
         )
         _ <- B3Tracing.serverSpan("client-call-status") {
           // we can now look for things that are not okay using span_name = client-call-status and message != OK as a search value

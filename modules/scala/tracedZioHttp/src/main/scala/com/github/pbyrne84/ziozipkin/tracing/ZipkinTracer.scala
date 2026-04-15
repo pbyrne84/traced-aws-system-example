@@ -1,13 +1,12 @@
 package com.github.pbyrne84.ziozipkin.tracing
 
-import io.opentelemetry.api.common.Attributes
+import io.opentelemetry.api.common.{AttributeKey, Attributes}
 import io.opentelemetry.api.trace.Tracer
 import io.opentelemetry.exporter.zipkin.ZipkinSpanExporterBuilder
 import io.opentelemetry.sdk.OpenTelemetrySdk
 import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.sdk.trace.SdkTracerProvider
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor
-import io.opentelemetry.semconv.resource.attributes.ResourceAttributes
 import zio._
 
 object TracerConfig {
@@ -35,7 +34,7 @@ object ZipkinTracer {
       tracerProvider <- ZIO.attempt(
         SdkTracerProvider
           .builder()
-          .setResource(Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, "zio-example")))
+          .setResource(Resource.create(Attributes.of(AttributeKey.stringKey("service.name"), "zio-example")))
           .addSpanProcessor(spanProcessor)
           .build()
       )

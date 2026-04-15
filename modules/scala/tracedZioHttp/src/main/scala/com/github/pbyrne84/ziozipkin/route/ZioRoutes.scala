@@ -1,11 +1,10 @@
 package com.github.pbyrne84.ziozipkin.route
 
 import com.github.pbyrne84.ziozipkin.client.TracingClient
-import com.github.pbyrne84.ziozipkin.tracing.{B3HTTPResponseTracing, B3Tracing, TracedRequest}
-import zio.{RuntimeFlags, Scope, ULayer, ZIO, ZLayer}
-import zio.http.{Client, Headers, Http, Method, Request, Response, Root}
+import com.github.pbyrne84.ziozipkin.tracing.{B3HTTPResponseTracing, TracedRequest}
 import zio.http._
 import zio.telemetry.opentelemetry.Tracing
+import zio.{RuntimeFlags, Scope, ULayer, ZIO, ZLayer}
 
 object RoutesBuild {
 
@@ -24,34 +23,19 @@ object ZioRoutes {
 
 class ZioRoutes extends TracedRequest {
 
-  val routes = Http.collectZIO[Request] {
-//     int() is hiding in the RouteDecoderModule, could not find it in any examples but I may be blind
-//    case req @ Method.GET -> Root / "proxy" / int(id) =>
-//      callTracedService(req, id)
-//
-//    case Method.GET -> Root / "delete1" =>
-//      Builds.PersonServiceBuild.personServiceBuild
-//        .flatMap(_.deletePeople().map((deleteCount: Long) => Response.text(deleteCount.toString)))
-//
-//    case Method.GET -> Root / "delete2" =>
-//      PersonRepo
-//        .deletePeople()
-//        .map((deleteCount: Long) => Response.text(deleteCount.toString))
-//        .provideLayer(Builds.PersonRepoBuild.personRepoMake)
-//
-//    case Method.GET -> Root / "delete3" =>
-//      personRepo
-//        .deletePeople()
-//        .map((deleteCount: Long) => Response.text(deleteCount.toString))
-
-    case req @ Method.GET -> Root / "moo" =>
-      ZIO.succeed(Response.text("bnana"))
-
-    case req @ Method.GET -> Root / "test" =>
-      traced("zio-test-route", req) {
-        ZIO.attempt(Response.text("content"))
-      }.tapError(error => ZIO.succeed(println("bananananaananan")))
-
+  val routes: Routes[Tracing with B3HTTPResponseTracing, Response] = {
+    Routes(
+      Method.GET / "moo" -> handler(ZIO.succeed(Response.text("banana"))),
+      Method.GET / "greet" -> handler { (req: Request) =>
+        val name = req.queryOrElse[String]("name", "World")
+        Response.text(s"Hello $name!")
+      },
+      Method.GET / "test" -> handler { (req: Request) =>
+        traced("zio-test-route", req) {
+          ZIO.succeed(Response.text("content"))
+        }.mapError(a => Response.text(a.toString))
+      }
+    )
   }
 
   // TracingHttp in com.github.pbyrne84.zio2playground.http does all the add tracing stuff in theory.
