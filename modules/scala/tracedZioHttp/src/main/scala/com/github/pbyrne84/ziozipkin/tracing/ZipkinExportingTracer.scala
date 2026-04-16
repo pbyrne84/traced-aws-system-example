@@ -1,14 +1,13 @@
 package com.github.pbyrne84.ziozipkin.tracing
 
 import com.typesafe.scalalogging.StrictLogging
-import io.opentelemetry.api.common.Attributes
+import io.opentelemetry.api.common.{AttributeKey, Attributes}
 import io.opentelemetry.api.trace.Tracer
 import io.opentelemetry.exporter.zipkin.ZipkinSpanExporter
 import io.opentelemetry.sdk.OpenTelemetrySdk
 import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.sdk.trace.SdkTracerProvider
 import io.opentelemetry.sdk.trace.`export`.SimpleSpanProcessor
-import io.opentelemetry.semconv.resource.attributes.ResourceAttributes
 import zio.{ZIO, ZLayer}
 
 /** We are not going to send the span details anywhere, we are just going to manage the creation of child spans etc.
@@ -25,7 +24,7 @@ object ZipkinExportingTracer extends StrictLogging {
         SdkTracerProvider
           .builder()
           .addSpanProcessor(spanProcessor)
-          .setResource(Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, "zio_http_demo")))
+          .setResource(Resource.create(Attributes.of(AttributeKey.stringKey("service.name"), "zio_http_demo")))
           .build()
       )
       openTelemetry <- ZIO.succeed(

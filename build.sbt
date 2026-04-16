@@ -53,9 +53,9 @@ ThisBuild / libraryDependencySchemes ++= Seq(
   "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always
 )
 
-val circeVersion = "0.14.3"
-val akkaVersion = "2.8.0"
-val akkaHttpVersion = "10.5.0"
+val circeVersion = "0.14.15"
+val akkaVersion = "2.8.8"
+val akkaHttpVersion = "10.5.3"
 
 //not to be used in ci, intellij has got a bit bumpy in the format on save on optimize imports across the project
 val formatAndTest =
@@ -100,23 +100,23 @@ Test / test := (Test / test)
   .dependsOn(Test / scalafmtCheck)
   .value
 
-val scalaTest = "org.scalatest" %% "scalatest" % "3.2.13"
+val scalaTest = "org.scalatest" %% "scalatest" % "3.2.20"
 
 lazy val tracedPlay = (project in file("modules/scala/tracedPlay"))
   .settings(
     name := "tracedPlay",
     commonSettings,
     fork := true,
-    javaAgents += "io.kamon" % "kanela-agent" % "1.0.17" % "runtime;compile",
+    javaAgents += "io.kamon" % "kanela-agent" % "2.0.0" % "runtime;compile",
     libraryDependencies ++= List(
       guice,
       "de.heikoseeberger" %% "akka-http-circe" % "1.39.2",
-      "io.kamon" %% "kamon-akka-http" % "2.6.0",
-      "io.kamon" %% "kamon-scala-future" % "2.6.0",
-      "io.kamon" %% "kamon-play" % "2.6.0",
-      "io.kamon" %% "kamon-zipkin" % "2.6.0",
-      "io.kamon" %% "kamon-logback" % "2.6.1",
-      "com.typesafe.play" %% "play" % "2.8.19",
+      "io.kamon" %% "kamon-akka-http" % "2.8.1",
+      "io.kamon" %% "kamon-scala-future" % "2.8.1",
+      "io.kamon" %% "kamon-play" % "2.8.1",
+      "io.kamon" %% "kamon-zipkin" % "2.8.1",
+      "io.kamon" %% "kamon-logback" % "2.8.1",
+      "com.typesafe.play" %% "play" % "2.9.10",
       ws,
       scalaTest % Test
     )
@@ -128,30 +128,30 @@ lazy val tracedAkkaHttp = (project in file("modules/scala/tracedAkkaHttp"))
     name := "tracedAkkaHttp",
     commonSettings,
     fork := true,
-    javaAgents += "io.kamon" % "kanela-agent" % "1.0.17" % "runtime;compile",
+    javaAgents += "io.kamon" % "kanela-agent" % "2.0.0" % "runtime;compile",
     libraryDependencies ++= List(
       "io.circe" %% "circe-parser" % circeVersion,
       "io.circe" %% "circe-generic" % circeVersion,
       "de.heikoseeberger" %% "akka-http-circe" % "1.39.2",
-      "com.fasterxml.jackson.core" % "jackson-databind" % "2.15.1",
+      "com.fasterxml.jackson.core" % "jackson-databind" % "2.21.2",
       "ch.qos.logback.contrib" % "logback-json-classic" % "0.1.5",
       "ch.qos.logback.contrib" % "logback-jackson" % "0.1.5",
       "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
       "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion,
       "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion,
-      "io.kamon" %% "kamon-zipkin" % "2.6.0",
-      "io.kamon" %% "kamon-logback" % "2.6.1",
-      "io.kamon" %% "kamon-akka-http" % "2.6.0",
-      "io.kamon" %% "kamon-scala-future" % "2.6.0",
-      "net.logstash.logback" % "logstash-logback-encoder" % "7.3",
-      "ch.qos.logback" % "logback-classic" % "1.4.7",
+      "io.kamon" %% "kamon-zipkin" % "2.8.1",
+      "io.kamon" %% "kamon-logback" % "2.8.1",
+      "io.kamon" %% "kamon-akka-http" % "2.8.1",
+      "io.kamon" %% "kamon-scala-future" % "2.8.1",
+      "net.logstash.logback" % "logstash-logback-encoder" % "9.0",
+      "ch.qos.logback" % "logback-classic" % "1.5.32",
       scalaTest % Test
     )
   )
   .enablePlugins(JavaAgent)
 
-val openTelemetryVersion = "1.24.0"
-val zioLoggingVersion = "2.1.12"
+val openTelemetryVersion = "1.61.0"
+val zioLoggingVersion = "2.5.3"
 
 lazy val tracedZioHttp = (project in file("modules/scala/tracedZioHttp"))
   .settings(
@@ -159,19 +159,21 @@ lazy val tracedZioHttp = (project in file("modules/scala/tracedZioHttp"))
     mainClass := Some("com.github.pbyrne84.ziozipkin.ZIOHttpZipkinApp"),
     commonSettings,
     libraryDependencies ++= Vector(
-      "ch.qos.logback" % "logback-classic" % "1.4.7",
+      "ch.qos.logback" % "logback-classic" % "1.5.32",
       "dev.zio" %% "zio" % "2.1.25",
-      "dev.zio" %% "zio-http" % "3.0.0-RC2",
+      "dev.zio" %% "zio-http" % "3.10.1",
       "io.opentracing" % "opentracing-util" % "0.33.0",
       "dev.zio" %% "zio-opentelemetry" % "2.0.3",
       "dev.zio" %% "zio-opentracing" % "2.0.3",
-      "org.slf4j" % "jul-to-slf4j" % "2.0.5",
-      "net.logstash.logback" % "logstash-logback-encoder" % "7.3",
+      "org.slf4j" % "jul-to-slf4j" % "2.0.17",
+      "net.logstash.logback" % "logstash-logback-encoder" % "9.0",
       "dev.zio" %% "zio-logging-slf4j" % zioLoggingVersion,
       "dev.zio" %% "zio-logging-slf4j-bridge" % zioLoggingVersion,
       "io.opentelemetry" % "opentelemetry-extension-trace-propagators" % openTelemetryVersion,
       "io.opentelemetry" % "opentelemetry-exporter-zipkin" % openTelemetryVersion,
-      "dev.zio" %% "zio-test" % "2.0.19" % Test
+      "dev.zio" %% "zio-test" % "2.1.25" % Test,
+      "dev.zio" %% "zio-test-sbt" % "2.1.25" % Test,
+      "dev.zio" %% "zio-http-testkit" % "3.10.1" % Test
     )
   )
 

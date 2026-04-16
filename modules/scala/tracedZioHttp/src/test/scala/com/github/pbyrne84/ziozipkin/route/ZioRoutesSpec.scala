@@ -1,42 +1,78 @@
 package com.github.pbyrne84.ziozipkin.route
 import com.github.pbyrne84.ziozipkin.tracing.B3HTTPResponseTracing
-import zio.http.{Path, Request, URL}
+import zio.http.{Client, Headers, Request, Response, Server, Status, TestServer, URL}
 import zio.logging.backend.SLF4J
 import zio.telemetry.opentelemetry.Tracing
 import zio.test._
 import zio.{Scope, ZIO}
-import zio.test.{Spec, TestEnvironment, ZIOSpecDefault}
 
 object ZioRoutesSpec extends ZIOSpecDefault {
 
   private val loggingLayer = zio.Runtime.removeDefaultLoggers >>> SLF4J.slf4j
 
-  private def callService(
-      request: Request
-  ) = {
-    ZIO
-      .serviceWithZIO[ZioRoutes](_.routes.runZIO(request))
-  }
+  override def spec: Spec[TestEnvironment with Scope, Any] = {
+    def runRequest(
+        headers: Headers
+    ): ZIO[Tracing with B3HTTPResponseTracing with TestServer with ZioRoutes with Client, Throwable, Response] = {
+      for {
+        client <- ZIO.service[zio.http.Client]
+        routes <- ZIO.service[ZioRoutes]
+        port <- ZIO.serviceWithZIO[Server](_.port)
+        request = Request
+          .get(url = URL.root.port(port).path("/test"))
+          .addHeaders(headers)
+        _ <- TestServer.addRoutes(routes.routes)
+        response <- client.batched(request)
+      } yield response
+    }
 
-  override def spec: Spec[TestEnvironment with Scope, Any] =
     suite("when calling the service")(
-      test("then it shown return 200") {
-        val request = Request.get(url = URL.empty.copy(path = Path.decode("/test")))
-
-        val value = zio.Runtime.removeDefaultLoggers >>> loggingLayer
-        callService(request).map { result =>
-          assertTrue(
-            result.status.code == 200
+      test(
+        "then it should generate the trace id and span id in the response headers when they were not passed in the request"
+      ) {
+        ZIO.scoped {
+          for {
+            response <- runRequest(Headers.empty)
+            body <- response.body.asString
+            maybeTraceId = response.headers.get("x-b3-traceid")
+            maybeSpanId = response.headers.get("x-b3-spanid")
+          } yield assertTrue(
+            response.status == Status.Ok,
+            body == "content",
+            maybeTraceId.isDefined,
+            maybeSpanId.isDefined
           )
         }
-
+      },
+      test(
+        "then it should return the same trace id but different span id in the response headers when tracing headers are passed"
+      ) {
+        ZIO.scoped {
+          for {
+            response <- runRequest(
+              Headers(("x-b3-traceid", "130f400f1325f59fc914421f0058aa41"), ("x-b3-spanid", "79479ced44b1bf73"))
+            )
+            body <- response.body.asString
+            maybeTraceId = response.headers.get("x-b3-traceid")
+            maybeSpanId = response.headers.get("x-b3-spanid")
+          } yield assertTrue(
+            response.status == Status.Ok,
+            body == "content",
+            maybeTraceId.contains("130f400f1325f59fc914421f0058aa41"),
+            maybeSpanId.isDefined,
+            !maybeSpanId.contains("79479ced44b1bf73")
+          )
+        }
       }
     ).provide(
       B3HTTPResponseTracing.layer,
       ZioRoutes.routesLayer,
       Tracing.live,
       NonExportingTracer.live,
+      TestServer.default,
+      zio.http.Client.default,
       zio.Runtime.removeDefaultLoggers >>> loggingLayer
     )
+  }
 
 }
