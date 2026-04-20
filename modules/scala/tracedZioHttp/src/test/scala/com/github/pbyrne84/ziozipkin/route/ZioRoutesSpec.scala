@@ -1,19 +1,13 @@
 package com.github.pbyrne84.ziozipkin.route
-import com.github.pbyrne84.ziozipkin.tracing.B3HTTPResponseTracing
 import zio.http.{Client, Headers, Request, Response, Server, Status, TestServer, URL}
-import zio.logging.backend.SLF4J
-import zio.telemetry.opentelemetry.Tracing
 import zio.test._
 import zio.{Scope, ZIO}
 
 object ZioRoutesSpec extends ZIOSpecDefault {
-
-  private val loggingLayer = zio.Runtime.removeDefaultLoggers >>> SLF4J.slf4j
-
   override def spec: Spec[TestEnvironment with Scope, Any] = {
     def runRequest(
         headers: Headers
-    ): ZIO[Tracing with B3HTTPResponseTracing with TestServer with ZioRoutes with Client, Throwable, Response] = {
+    ): ZIO[TestServer with ZioRoutes with Client, Throwable, Response] = {
       for {
         client <- ZIO.service[zio.http.Client]
         routes <- ZIO.service[ZioRoutes]
@@ -30,7 +24,8 @@ object ZioRoutesSpec extends ZIOSpecDefault {
       test(
         "then it should generate the trace id and span id in the response headers when they were not passed in the request"
       ) {
-        ZIO.scoped {
+
+        {
           for {
             response <- runRequest(Headers.empty)
             body <- response.body.asString
@@ -42,6 +37,7 @@ object ZioRoutesSpec extends ZIOSpecDefault {
             maybeTraceId.isDefined,
             maybeSpanId.isDefined
           )
+
         }
       },
       test(
@@ -65,13 +61,9 @@ object ZioRoutesSpec extends ZIOSpecDefault {
         }
       }
     ).provide(
-      B3HTTPResponseTracing.layer,
       ZioRoutes.routesLayer,
-      Tracing.live,
-      NonExportingTracer.live,
-      TestServer.default,
       zio.http.Client.default,
-      zio.Runtime.removeDefaultLoggers >>> loggingLayer
+      TestServer.default
     )
   }
 

@@ -1,6 +1,4 @@
 package com.github.pbyrne84.ziozipkin.client
-
-import zio.{ZIO, ZLayer}
 //
 //object ExternalApiService {
 //

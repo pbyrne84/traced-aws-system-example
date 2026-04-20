@@ -1,39 +1,31 @@
 package com.github.pbyrne84.ziozipkin.tracing
 
-import com.github.pbyrne84.ziozipkin.client.B3
-import zio.http.{Header, Headers, Request, Response}
-import zio.telemetry.opentelemetry.Tracing
-import zio.{Task, ZIO}
+import zio.ZIO
+import zio.http.{Request, Response}
+import zio.telemetry.opentracing.OpenTracing
 
 trait TracedRequest {
 
-  def traced[A, B](
+  def traced(
       spanName: String,
-      request: Request,
-      defaultToAlwaysSample: Boolean = true
-  )(call: => ZIO[A, B, Response]): ZIO[Tracing with B3HTTPResponseTracing with A, Any, Response] = {
+      request: Request
+  )(call: => ZIO[OpenTracing, Throwable, Response]): ZIO[Any, Throwable, Response] = {
 
-    for {
-      defaultingSampledRequest <- headersWithSamplingAdded(request, defaultToAlwaysSample)
-      tracedOperation <- B3Tracing.startTracing(spanName, defaultingSampledRequest)(
+    B3Tracing
+      .serverSpan(spanName) {
         for {
           _ <- ZIO.logInfo("starting request")
           result <- call
           newTracedHeaders <- B3HTTPResponseTracing.appendHeadersToResponse(result.headers)
           _ <- ZIO.logInfo("finished request")
         } yield result.copy(headers = newTracedHeaders)
+
+      }
+      .provide(
+        B3JaegerTracer
+          .createTracerLayerFromRequestHeaders(serviceName = "boop", request.headers),
+        B3HTTPResponseTracing.layer
       )
-    } yield tracedOperation
   }
 
-  private def headersWithSamplingAdded(request: Request, defaultToAlwaysSample: Boolean): Task[Request] = {
-    ZIO.attempt {
-      val headersWithDefaultingSampleHeaders =
-        B3.defaultSampledHeader(request.headers, defaultToAlwaysSample)
-
-      val headersWithTracing = Headers(headersWithDefaultingSampleHeaders)
-
-      request.copy(headers = headersWithTracing)
-    }
-  }
 }

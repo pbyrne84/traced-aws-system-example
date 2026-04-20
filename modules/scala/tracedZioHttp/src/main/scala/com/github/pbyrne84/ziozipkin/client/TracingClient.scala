@@ -2,60 +2,9 @@ package com.github.pbyrne84.ziozipkin.client
 
 import com.github.pbyrne84.ziozipkin.logging.ExampleLogAnnotations
 import com.github.pbyrne84.ziozipkin.tracing.{B3Tracing, HTTPResponseTracing}
-import io.opentelemetry.api.trace.{SpanId, TraceId}
 import zio.http._
-import zio.telemetry.opentelemetry.Tracing
+import zio.telemetry.opentracing.OpenTracing
 import zio.{&, Scope, ZIO, ZLayer}
-
-object B3 {
-
-  // current context returns this as filler if the tracing is not working properly
-  val emptyTraceId: String = "0".padTo(TraceId.getLength, "0").mkString
-  val emptySpanId: String = "0".padTo(SpanId.getLength, "0").mkString
-
-  object header {
-    val traceId: String = "X-B3-TraceId"
-    val spanId: String = "X-B3-SpanId"
-    val sampled: String = "X-B3-Sampled"
-  }
-
-  def defaultSampledHeader(
-      headers: Headers,
-      defaultToAlwaysSample: Boolean = true
-  ): Headers = {
-    def generateDefaultHeader: Header = {
-      val sample = if (defaultToAlwaysSample) {
-        "1"
-      } else {
-        "0"
-      }
-
-      Header.Custom(B3.header.sampled, sample)
-    }
-
-    val lowercaseSampledHeaderName = B3.header.sampled.toLowerCase
-    val maybeSampledHeader =
-      headers.find(header => {
-        header.headerName.toLowerCase == lowercaseSampledHeaderName
-      })
-
-    maybeSampledHeader match {
-      case Some(header) =>
-        if (List("0", "1").contains(header.renderedValue)) {
-          headers
-        } else {
-          val headersWithoutSampled = headers.filterNot { header =>
-            header.headerName.toLowerCase == lowercaseSampledHeaderName
-          }.toList
-
-          Headers(headersWithoutSampled :+ generateDefaultHeader)
-        }
-
-      case None => headers ++ Headers(generateDefaultHeader)
-    }
-  }
-
-}
 
 object TracingClient {
   def request(
@@ -63,7 +12,7 @@ object TracingClient {
       method: Method = Method.GET,
       headers: Headers = Headers.empty,
       content: Body = Body.empty
-  ): ZIO[Any with Tracing with Client & Scope with TracingClient, Throwable, Response] = {
+  ): ZIO[Any with OpenTracing with Client & Scope with TracingClient, Throwable, Response] = {
     ZIO.service[TracingClient].flatMap(_.request(url, method, headers, content))
   }
 
@@ -81,7 +30,7 @@ class TracingClient(HTTPTracing: HTTPResponseTracing) {
       method: Method = Method.GET,
       headers: Headers = Headers.empty,
       content: Body = Body.empty
-  ): ZIO[Any with Tracing with Client & Scope, Throwable, Response] =
+  ): ZIO[OpenTracing with Client & Scope, Throwable, Response] =
     B3Tracing.serverSpan(s"${method.toString.toLowerCase}-client-call") {
       for {
         _ <- ZIO

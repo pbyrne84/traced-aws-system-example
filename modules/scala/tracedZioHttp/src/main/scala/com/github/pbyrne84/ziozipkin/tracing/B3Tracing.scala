@@ -1,43 +1,11 @@
 package com.github.pbyrne84.ziozipkin.tracing
 
 import com.github.pbyrne84.ziozipkin.logging.ExampleLogAnnotations
-import io.opentelemetry.api.trace.{SpanKind, StatusCode}
-import io.opentelemetry.context.propagation.TextMapPropagator
-import io.opentelemetry.extension.trace.propagation.B3Propagator
-import zio.http.{Headers, Request, Response}
-import zio.telemetry.opentelemetry.Tracing
-
+import io.opentelemetry.api.trace.StatusCode
+import zio.telemetry.opentracing.OpenTracing
 import zio.{Trace, ZIO}
 
 object B3Tracing {
-
-  import zio.telemetry.opentelemetry.TracingSyntax.OpenTelemetryZioOps
-
-  val b3Propagator: TextMapPropagator = B3Propagator.injectingMultiHeaders()
-  val headerTextMapGetter: HeaderTextMapGetter = new HeaderTextMapGetter()
-
-  def startTracing[A, B](name: String, request: Request)(
-      operation: => ZIO[A, B, Response]
-  ): ZIO[Tracing with B3HTTPResponseTracing with A, B, Response] = {
-    val spanName = s"${request.method}:${request.url}"
-    requestInitialisationSpan(name, request)(
-      serverSpan(spanName)(operation)
-    )
-  }
-
-  def requestInitialisationSpan[A, B, C](name: String, request: Request)(
-      operation: ZIO[A, B, C]
-  )(implicit trace: Trace): ZIO[A with Tracing, B, C] = {
-    println(request.headers.toList)
-    operation
-      .spanFrom(
-        propagator = b3Propagator,
-        carrier = request.headers.toList,
-        getter = headerTextMapGetter,
-        spanName = name,
-        spanKind = SpanKind.SERVER
-      ) @@ ExampleLogAnnotations.incomingRequest(request)
-  }
 
   // Creates a new span and makes sure all the new details gets set in the logging context.
   // Very confusing just using Tracing.span otherwise.
@@ -55,26 +23,24 @@ object B3Tracing {
   // e.g  "trace": "com.github.pbyrne84.zio2playground.http.TracingHttp.initialiseB3Trace.applyOrElse(TracingHttp.scala:41)"
   def serverSpan[R, E, A](
       name: String
-  )(effect: => ZIO[R, E, A])(implicit trace: Trace): ZIO[R with Tracing, E, A] = {
-    Tracing.span[R with Tracing, E, A](name, SpanKind.SERVER, defaultErrorMapper) {
+  )(effect: => ZIO[R, E, A])(implicit trace: Trace): ZIO[R with OpenTracing, E, A] = {
 
-      import com.github.pbyrne84.ziozipkin.logging.TracingOps.SpanOps
-
+    ZIO.serviceWithZIO[OpenTracing] { tracing =>
       for {
-        span <- Tracing.getCurrentSpan
-        spanContext = span.getSpanContext
-        traceId = spanContext.getTraceId
-        spanId = spanContext.getSpanId
-        parentSpanId = span.maybeParentSpanId.getOrElse("???")
-        snapName = span.maybeName.getOrElse("unknown")
+        _ <- tracing.setBaggageItem("span-name", name)
+        spanContext <- tracing.getCurrentSpanContextUnsafe
+        traceId = spanContext.toTraceId
+        spanId = spanContext.toSpanId
+        parentSpanId = ""
         result <- effect @@ ExampleLogAnnotations.stringTraceId(traceId) @@
           ExampleLogAnnotations.parentSpanId(parentSpanId) @@
           ExampleLogAnnotations.stringSpanId(spanId) @@
-          ExampleLogAnnotations.stringSpanName(snapName) @@
+          ExampleLogAnnotations.stringSpanName(name) @@
           ExampleLogAnnotations.trace(trace.toString)
 
       } yield result
     }
+
   }
 
   // Not sure what really should be used at this point
