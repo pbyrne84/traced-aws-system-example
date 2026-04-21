@@ -1,17 +1,17 @@
 package com.github.pbyrne84.akkahttpkamon
 
-import akka.actor.ActorSystem
-import akka.http.scaladsl._
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server._
 import com.typesafe.scalalogging.StrictLogging
-import de.heikoseeberger.akkahttpcirce.ErrorAccumulatingCirceSupport
 import kamon.Kamon
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.http.scaladsl.Http
+import org.apache.pekko.http.scaladsl.model.{HttpRequest, StatusCodes}
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.Route
+import org.mdedetrich.pekko.http.support.CirceHttpSupport
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 
-object AkkHttpBoot extends StrictLogging with ErrorAccumulatingCirceSupport {
+object AkkHttpBoot extends StrictLogging with CirceHttpSupport {
 
   private implicit val system: ActorSystem = ActorSystem()
   private implicit val executionContext: ExecutionContextExecutor = system.dispatcher

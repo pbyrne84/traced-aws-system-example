@@ -54,8 +54,7 @@ ThisBuild / libraryDependencySchemes ++= Seq(
 )
 
 val circeVersion = "0.14.15"
-val akkaVersion = "2.8.8"
-val akkaHttpVersion = "10.5.3"
+val akkaHttpVersion = "1.3.0"
 
 //not to be used in ci, intellij has got a bit bumpy in the format on save on optimize imports across the project
 val formatAndTest =
@@ -123,6 +122,7 @@ lazy val tracedPlay = (project in file("modules/scala/tracedPlay"))
   )
   .enablePlugins(PlayScala, JavaAgent)
 
+//"org.apache.pekko" %% "pekko-http" % "1.3.0"
 lazy val tracedAkkaHttp = (project in file("modules/scala/tracedAkkaHttp"))
   .settings(
     name := "tracedAkkaHttp",
@@ -132,16 +132,16 @@ lazy val tracedAkkaHttp = (project in file("modules/scala/tracedAkkaHttp"))
     libraryDependencies ++= List(
       "io.circe" %% "circe-parser" % circeVersion,
       "io.circe" %% "circe-generic" % circeVersion,
-      "de.heikoseeberger" %% "akka-http-circe" % "1.39.2",
+      "org.mdedetrich" %% "pekko-http-circe" % "1.1.0",
       "com.fasterxml.jackson.core" % "jackson-databind" % "2.21.2",
       "ch.qos.logback.contrib" % "logback-json-classic" % "0.1.5",
       "ch.qos.logback.contrib" % "logback-jackson" % "0.1.5",
-      "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
-      "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion,
-      "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion,
+      "org.apache.pekko" %% "pekko-http" % akkaHttpVersion,
+      "org.apache.pekko" %% "pekko-stream-testkit" % akkaHttpVersion,
+      "org.apache.pekko" %% "pekko-http-testkit" % akkaHttpVersion,
       "io.kamon" %% "kamon-zipkin" % "2.8.1",
       "io.kamon" %% "kamon-logback" % "2.8.1",
-      "io.kamon" %% "kamon-akka-http" % "2.8.1",
+      "io.kamon" %% "kamon-pekko-http" % "2.8.1",
       "io.kamon" %% "kamon-scala-future" % "2.8.1",
       "net.logstash.logback" % "logstash-logback-encoder" % "9.0",
       "ch.qos.logback" % "logback-classic" % "1.5.32",
