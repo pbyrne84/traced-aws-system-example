@@ -23,7 +23,7 @@ object B3Tracing {
   // e.g  "trace": "com.github.pbyrne84.zio2playground.http.TracingHttp.initialiseB3Trace.applyOrElse(TracingHttp.scala:41)"
   def serverSpan[R, E, A](
       name: String
-  )(effect: => ZIO[R, E, A])(implicit trace: Trace): ZIO[R with OpenTracing, E, A] = {
+  )(effect: => ZIO[R, E, A])(implicit trace: Trace): ZIO[R & OpenTracing, E, A] = {
 
     ZIO.serviceWithZIO[OpenTracing] { tracing =>
       for {

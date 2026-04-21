@@ -46,7 +46,7 @@ object B3JaegerTracer {
   def createTracerLayerFromRequestHeaders(
       serviceName: String,
       headers: Headers
-  ): ZLayer[Any, Throwable, JaegerTracer with OpenTracing] = {
+  ): ZLayer[Any, Throwable, JaegerTracer & OpenTracing] = {
 
     val traceId = headers.headers.get(B3JaegerTracer.headerName.traceId).getOrElse("")
     val spanId = headers.headers.get(B3JaegerTracer.headerName.spanId).getOrElse("")
@@ -58,11 +58,11 @@ object B3JaegerTracer {
       serviceName: String,
       traceId: String,
       spanId: String
-  ): ZLayer[Any, Throwable, JaegerTracer with OpenTracing] = {
+  ): ZLayer[Any, Throwable, JaegerTracer & OpenTracing] = {
 
     val tracerLayer: ZLayer[Any, Nothing, JaegerTracer] = ZLayer(ZIO.succeed(createTracer(serviceName)))
     val tracerService: ZLayer[JaegerTracer, Nothing, OpenTracing] =
-      ZLayer.scoped(ZIO.service[JaegerTracer].flatMap { jaegerTracer: JaegerTracer =>
+      ZLayer.scoped(ZIO.service[JaegerTracer].flatMap { (jaegerTracer: JaegerTracer) =>
         val b3HeaderMap: util.Map[String, String] = Map(
           B3JaegerTracer.headerName.traceId -> traceId,
           B3JaegerTracer.headerName.spanId -> spanId

@@ -31,13 +31,13 @@ object JavaLogging {
   }
 
   private def getLogContextMap: Task[Map[String, String]] = {
-    ZIO.getFiberRefs.map { fiberRefs: FiberRefs =>
+    ZIO.getFiberRefs.map { (fiberRefs: FiberRefs) =>
       val refsKeys = fiberRefs.fiberRefs
 
       refsKeys.flatMap { key =>
         fiberRefs.get(key) match {
           case Some(logContext: LogContext) => logContext.asMap
-          case _ => Map.empty
+          case _                            => Map.empty
         }
       }.toMap
     }

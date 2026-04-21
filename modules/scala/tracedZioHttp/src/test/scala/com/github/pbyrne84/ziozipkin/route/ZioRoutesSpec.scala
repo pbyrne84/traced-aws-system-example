@@ -4,10 +4,10 @@ import zio.test._
 import zio.{Scope, ZIO}
 
 object ZioRoutesSpec extends ZIOSpecDefault {
-  override def spec: Spec[TestEnvironment with Scope, Any] = {
+  override def spec: Spec[TestEnvironment & Scope, Any] = {
     def runRequest(
         headers: Headers
-    ): ZIO[TestServer with ZioRoutes with Client, Throwable, Response] = {
+    ): ZIO[TestServer & ZioRoutes & Client, Throwable, Response] = {
       for {
         client <- ZIO.service[zio.http.Client]
         routes <- ZIO.service[ZioRoutes]

@@ -1,7 +1,7 @@
 lazy val projectName = "traced-aws-system-example"
 
 name := projectName
-val scala213Version = "2.13.18"
+val scala213Version = "3.8.3"
 scalaVersion := scala213Version
 
 ThisBuild / turbo := false
@@ -54,7 +54,7 @@ ThisBuild / libraryDependencySchemes ++= Seq(
 )
 
 val circeVersion = "0.14.15"
-val akkaHttpVersion = "1.3.0"
+val pekkoHttpVersion = "1.3.0"
 
 //not to be used in ci, intellij has got a bit bumpy in the format on save on optimize imports across the project
 val formatAndTest =
@@ -67,8 +67,7 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= Vector(
     "ch.qos.logback.contrib" % "logback-json-classic" % "0.1.5",
     "ch.qos.logback.contrib" % "logback-jackson" % "0.1.5",
-    "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
-    "com.chuusai" %% "shapeless" % "2.3.10"
+    "com.typesafe.scala-logging" %% "scala-logging" % "3.9.6"
   ),
   scalacOptions ++= Seq(
     "-encoding",
@@ -76,12 +75,13 @@ lazy val commonSettings = Seq(
     "-feature",
     "-language:implicitConversions",
     "-language:existentials",
-    "-unchecked"
+    "-unchecked",
+    "-no-indent"
   ) ++
     (CrossVersion.partialVersion(scalaVersion.value) match {
       case Some((2, 13)) => Seq("-Ytasty-reader") // flags only needed in Scala 2
-      case Some((3, _)) => Seq("-no-indent") // flags only needed in Scala 3
-      case _ => Seq.empty
+      case Some((3, _))  => Seq("-no-indent") // flags only needed in Scala 3
+      case _             => Seq.empty
     }),
   formatAndTest := {
     (Test / test)
@@ -106,21 +106,20 @@ lazy val tracedPlay = (project in file("modules/scala/tracedPlay"))
     name := "tracedPlay",
     commonSettings,
     fork := true,
-    javaAgents += "io.kamon" % "kanela-agent" % "2.0.0" % "runtime;compile",
+    // javaAgents += "io.kamon" % "kanela-agent" % "2.0.0" % "runtime;compile",
     libraryDependencies ++= List(
       guice,
-      "de.heikoseeberger" %% "akka-http-circe" % "1.39.2",
-      "io.kamon" %% "kamon-akka-http" % "2.8.1",
+      "io.kamon" %% "kamon-pekko-http" % "2.8.1",
       "io.kamon" %% "kamon-scala-future" % "2.8.1",
-      "io.kamon" %% "kamon-play" % "2.8.1",
+      "io.circe" %% "circe-parser" % "0.14.15",
       "io.kamon" %% "kamon-zipkin" % "2.8.1",
       "io.kamon" %% "kamon-logback" % "2.8.1",
-      "com.typesafe.play" %% "play" % "2.9.10",
+      "org.playframework" %% "play" % "3.0.10",
       ws,
       scalaTest % Test
     )
   )
-  .enablePlugins(PlayScala, JavaAgent)
+  .enablePlugins(PlayScala)
 
 //"org.apache.pekko" %% "pekko-http" % "1.3.0"
 lazy val tracedAkkaHttp = (project in file("modules/scala/tracedAkkaHttp"))
@@ -136,9 +135,11 @@ lazy val tracedAkkaHttp = (project in file("modules/scala/tracedAkkaHttp"))
       "com.fasterxml.jackson.core" % "jackson-databind" % "2.21.2",
       "ch.qos.logback.contrib" % "logback-json-classic" % "0.1.5",
       "ch.qos.logback.contrib" % "logback-jackson" % "0.1.5",
-      "org.apache.pekko" %% "pekko-http" % akkaHttpVersion,
-      "org.apache.pekko" %% "pekko-stream-testkit" % akkaHttpVersion,
-      "org.apache.pekko" %% "pekko-http-testkit" % akkaHttpVersion,
+      "org.apache.pekko" %% "pekko-http" % pekkoHttpVersion,
+      "org.apache.pekko" %% "pekko-stream-testkit" % pekkoHttpVersion,
+      "org.apache.pekko" %% "pekko-http-testkit" % pekkoHttpVersion,
+      "io.kamon" %% "kamon-bundle" % "2.8.1",
+      // "io.kamon" %% "kamon-apm-reporter" % "2.8.1",
       "io.kamon" %% "kamon-zipkin" % "2.8.1",
       "io.kamon" %% "kamon-logback" % "2.8.1",
       "io.kamon" %% "kamon-pekko-http" % "2.8.1",

@@ -12,7 +12,7 @@ import zio.{Scope, ULayer, ZIO, ZLayer}
 
 object RoutesBuild {
 
-  lazy val routesBuild: ZIO[Any with Scope, Throwable, ZioRoutes] = ZLayer
+  lazy val routesBuild: ZIO[Any & Scope, Throwable, ZioRoutes] = ZLayer
     .make[ZioRoutes](
       ZioRoutes.routesLayer
     )

@@ -2,21 +2,23 @@ package logging
 
 import com.typesafe.scalalogging.StrictLogging
 import kamon.Kamon
-import shapeless.tag.@@
 
 trait LogTracing extends StrictLogging {
 
-  trait ActionTag
-  trait ControllerActionTag
-
-  type LogAction = String @@ ActionTag
-  type ControllerLogAction = String @@ ControllerActionTag
-
-  import shapeless.tag
+  opaque type LogAction = String
+  opaque type ControllerLogAction = String
 
   private implicit class ActionMessageOps(text: String) {
-    def asAction: String @@ ActionTag = tag[ActionTag](text)
-    def asControllerAction: String @@ ControllerActionTag = tag[ControllerActionTag](text)
+    def asAction: LogAction = text
+    def asControllerAction: ControllerLogAction = text
+  }
+
+  implicit class LogActionOps(logAction: LogAction) {
+    inline def value: String = logAction
+  }
+
+  implicit class ControllerLogActionOps(controllerLogAction: ControllerLogAction) {
+    inline def value: String = controllerLogAction
   }
 
   private[logging] val prefix = "tp-"
@@ -25,16 +27,16 @@ trait LogTracing extends StrictLogging {
     private[LogTracing] val controllerPrefix = s"${prefix}controller-"
 
     val showHomePage: ControllerLogAction =
-      s"${controllerPrefix}show-homepage".asControllerAction
+      s"${controllerPrefix}show-homepage"
 
     val testRequestCallBack: ControllerLogAction =
-      s"${controllerPrefix}test-request-call-back".asControllerAction
+      s"${controllerPrefix}test-request-call-back"
 
   }
 
   object actionMarker {
 
-    val childAction: String @@ ActionTag =
+    val childAction: LogAction =
       s"${prefix}child-action".asAction
   }
 

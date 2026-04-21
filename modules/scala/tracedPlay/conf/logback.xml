@@ -12,10 +12,7 @@
     </layout>
   </appender>
 
-  <logger name="com.gargoylesoftware.htmlunit" level="ERROR" />
-  <logger name="com.elsevier" level="INFO" />
   <logger name="akka" level="ERROR" />
-  <logger name="com.elsevier.bos.atlas.selfserviceapi.http.client" level="ERROR" />
 
   <root level="INFO">
     <appender-ref ref="json"/>
