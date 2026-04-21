@@ -1,10 +1,14 @@
 package com.github.pbyrne84.ziozipkin.route
 
-import com.github.pbyrne84.ziozipkin.client.TracingClient
-import com.github.pbyrne84.ziozipkin.tracing.{B3HTTPResponseTracing, TracedRequest}
+import com.github.pbyrne84.ziozipkin.logging.JavaLogging
+import com.github.pbyrne84.ziozipkin.tracing.TracedRequest
+import org.slf4j
+import org.slf4j.LoggerFactory
+import org.slf4j.bridge.SLF4JBridgeHandler
 import zio.http._
-import zio.telemetry.opentelemetry.Tracing
-import zio.{RuntimeFlags, Scope, ULayer, ZIO, ZLayer}
+import zio.logging.backend.SLF4J
+import zio.telemetry.opentracing.OpenTracing
+import zio.{Scope, ULayer, ZIO, ZLayer}
 
 object RoutesBuild {
 
@@ -22,40 +26,29 @@ object ZioRoutes {
 }
 
 class ZioRoutes extends TracedRequest {
+  SLF4JBridgeHandler.install()
+  val logger = zio.Runtime.removeDefaultLoggers >>> SLF4J.slf4j
+  val sl4jLogger: slf4j.Logger = LoggerFactory.getLogger(getClass)
 
-  val routes: Routes[Tracing with B3HTTPResponseTracing, Response] = {
+  val routes: Routes[Any, Response] = {
     Routes(
-      Method.GET / "moo" -> handler(ZIO.succeed(Response.text("banana"))),
-      Method.GET / "greet" -> handler { (req: Request) =>
-        val name = req.queryOrElse[String]("name", "World")
-        Response.text(s"Hello $name!")
-      },
       Method.GET / "test" -> handler { (req: Request) =>
         traced("zio-test-route", req) {
-          ZIO.succeed(Response.text("content"))
+          val value: ZIO[OpenTracing, Throwable, Response] = {
+            ZIO
+              .serviceWithZIO[OpenTracing] { tracing =>
+                for {
+                  _ <- JavaLogging.attemptWithMdcLoggingUsingTracing(sl4jLogger.info("wppf"))
+                  response <- ZIO.attempt(Response.text("content"))
+                } yield response
+
+              }
+          }
+
+          value
         }.mapError(a => Response.text(a.toString))
       }
-    )
+    ).provide(logger)
   }
 
-  // TracingHttp in com.github.pbyrne84.zio2playground.http does all the add tracing stuff in theory.
-  // it takes a Http.collectZIO[Request] compatible format of
-  // routes: PartialFunction[Request, ZIO[R, E, Response]] and
-  // just intercepts the request before the call to do the processing.
-  private def callTracedService(req: Request, id: RuntimeFlags): ZIO[
-    Tracing with B3HTTPResponseTracing with TracingClient with Client,
-    Throwable,
-    Response
-  ] = {
-    for {
-      _ <- ZIO.logInfo(s"received a called traced service call with the id $id")
-//          result <- ExternalApiService
-//            .callApi(id)
-//          content <- result.body.asString
-      _ <- ZIO.logInfo(s"running the banana")
-
-    } yield {
-      Response.text("content")
-    }
-  }
 }
