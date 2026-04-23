@@ -4,7 +4,7 @@ import com.github.pbyrne84.ziozipkin.logging.ExampleLogAnnotations
 import com.github.pbyrne84.ziozipkin.tracing.{B3Tracing, HTTPResponseTracing}
 import zio.http._
 import zio.telemetry.opentracing.OpenTracing
-import zio.{&, Scope, ZIO, ZLayer}
+import zio.{Scope, ZIO, ZLayer}
 
 object TracingClient {
   def request(
@@ -12,7 +12,7 @@ object TracingClient {
       method: Method = Method.GET,
       headers: Headers = Headers.empty,
       content: Body = Body.empty
-  ): ZIO[Any with OpenTracing with Client & Scope with TracingClient, Throwable, Response] = {
+  ): ZIO[Any & OpenTracing & Client & Scope & TracingClient, Throwable, Response] = {
     ZIO.service[TracingClient].flatMap(_.request(url, method, headers, content))
   }
 
@@ -30,7 +30,7 @@ class TracingClient(HTTPTracing: HTTPResponseTracing) {
       method: Method = Method.GET,
       headers: Headers = Headers.empty,
       content: Body = Body.empty
-  ): ZIO[OpenTracing with Client & Scope, Throwable, Response] =
+  ): ZIO[OpenTracing & Client & Scope, Throwable, Response] =
     B3Tracing.serverSpan(s"${method.toString.toLowerCase}-client-call") {
       for {
         _ <- ZIO

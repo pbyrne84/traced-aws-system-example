@@ -1,10 +1,10 @@
 package controllers
 
-import akka.http.scaladsl.model.headers.RawHeader
-import akka.util.ByteString
 import kamon.Kamon
-import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpHeader, HttpMethod, HttpRequest}
 import logging.{LogTracing, LoggingLayout}
+import org.apache.pekko.http.scaladsl.model.headers.RawHeader
+import org.apache.pekko.http.scaladsl.model.{ContentTypes, HttpEntity, HttpMethod, HttpRequest}
+import org.apache.pekko.util.ByteString
 import play.api.mvc.{AnyContent, MessagesRequest, Request, Result}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -14,7 +14,7 @@ import scala.util.{Failure, Success}
 //Also adds the trace details to the response.
 trait TraceInitialisation extends LogTracing {
   def trace[A](action: ControllerLogAction, request: Request[AnyContent])(call: => Result): Result = {
-    Kamon.runWithContextEntry(LoggingLayout.ActionKey, action) {
+    Kamon.runWithContextEntry(LoggingLayout.ActionKey, action.value) {
       // make sure we have one action for dumb tasks
       logger.info(s"Running $action")
       addTraceHeadersToResult(call)
@@ -31,11 +31,11 @@ trait TraceInitialisation extends LogTracing {
   )(call: => Future[Result])(implicit ec: ExecutionContext): Future[Result] = {
 
     val (httpRequest: HttpRequest, maybeStrictEntity) = createRequestEntry(request)
-    val span = Kamon.spanBuilder(action).start()
+    val span = Kamon.spanBuilder(action.value).start()
 
     Kamon.runWithSpan(span) {
       Kamon.runWithContextEntry(LoggingLayout.ParentSpanKey, Kamon.currentSpan().parentId.string) {
-        Kamon.runWithContextEntry(LoggingLayout.ActionKey, action) {
+        Kamon.runWithContextEntry(LoggingLayout.ActionKey, action.value) {
           Kamon.runWithContextEntry(LoggingLayout.CurrentRequestKey, Some(httpRequest)) {
             Kamon.runWithContextEntry(LoggingLayout.EntityKey, maybeStrictEntity) {
               // stops multiple calls firing off as detaches from call by name =>
@@ -58,7 +58,7 @@ trait TraceInitialisation extends LogTracing {
 
   private def createRequestEntry(request: Request[AnyContent]): (HttpRequest, Option[HttpEntity.Strict]) = {
     val maybeStrictEntity = if (request.hasBody) {
-      val maybeJson = request.body.asFormUrlEncoded.map { entries: Map[String, Seq[String]] =>
+      val maybeJson = request.body.asFormUrlEncoded.map { (entries: Map[String, Seq[String]]) =>
         import io.circe.syntax._
         entries.asJson
 

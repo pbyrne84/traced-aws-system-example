@@ -6,8 +6,8 @@ import io.opentelemetry.exporter.zipkin.ZipkinSpanExporterBuilder
 import io.opentelemetry.sdk.OpenTelemetrySdk
 import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.sdk.trace.SdkTracerProvider
-import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor
-import zio._
+import io.opentelemetry.sdk.trace.`export`.SimpleSpanProcessor
+import zio.*
 
 object TracerConfig {
   val live: ZLayer[Any, Nothing, TracerConfig] = ZLayer {

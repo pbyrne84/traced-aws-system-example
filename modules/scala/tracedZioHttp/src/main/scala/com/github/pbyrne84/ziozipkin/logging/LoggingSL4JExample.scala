@@ -38,7 +38,7 @@ class LoggingSL4JExample {
 
   val sl4jLogger: slf4j.Logger = LoggerFactory.getLogger(getClass)
 
-  def run: ZIO[OpenTracing with JaegerTracer, Throwable, Unit] = {
+  def run: ZIO[OpenTracing & JaegerTracer, Throwable, Unit] = {
     ZIO.serviceWithZIO[OpenTracing] { tracing =>
       (for {
         _ <- tracing.setBaggageItem("foo", "bar")
@@ -51,7 +51,7 @@ class LoggingSL4JExample {
 
   }
 
-  private def createOperation(spanName: String): ZIO[OpenTracing with JaegerTracer, Throwable, Unit] = {
+  private def createOperation(spanName: String): ZIO[OpenTracing & JaegerTracer, Throwable, Unit] = {
     // Wrap like this to get child spans
     B3Tracing
       .serverSpan(spanName) {

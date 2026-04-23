@@ -58,7 +58,7 @@ object ZIOHttpZipkinApp extends ZIOAppDefault {
   override val bootstrap: ZLayer[ZIOAppArgs, Any, Any] =
     Runtime.removeDefaultLoggers >>> loggingLayer
 
-  override def run: ZIO[Any with ZIOAppArgs with Scope, Any, Any] = {
+  override def run: ZIO[Any & ZIOAppArgs & Scope, Any, Any] = {
     RoutesBuild.routesBuild.flatMap((routes: ZioRoutes) => startService(routes))
   }
 

@@ -1,7 +1,7 @@
 package logging
 
-import akka.http.scaladsl.model.{HttpEntity, HttpRequest}
 import kamon.context.Context
+import org.apache.pekko.http.scaladsl.model.{HttpEntity, HttpRequest}
 
 object LoggingLayout {
 

@@ -21,7 +21,7 @@ object B3HTTPResponseTracing {
 
   def appendHeadersToResponse(
       currentHeaders: Headers
-  ): ZIO[OpenTracing with B3HTTPResponseTracing, Nothing, Headers] = {
+  ): ZIO[OpenTracing & B3HTTPResponseTracing, Nothing, Headers] = {
     ZIO.serviceWithZIO[B3HTTPResponseTracing](_.appendHeadersToResponse(currentHeaders))
   }
 

@@ -13,13 +13,13 @@ import scala.concurrent.{ExecutionContextExecutor, Future}
 
 object AkkHttpBoot extends StrictLogging with CirceHttpSupport {
 
+  Kamon.init()
+
   private implicit val system: ActorSystem = ActorSystem()
   private implicit val executionContext: ExecutionContextExecutor = system.dispatcher
   private val zioPort = 58479
 
   def main(args: Array[String]): Unit = {
-
-    Kamon.init()
 
     val port = 8080
     val bindingFuture = Http().newServerAt("localhost", port).bind(routes)
@@ -36,9 +36,8 @@ object AkkHttpBoot extends StrictLogging with CirceHttpSupport {
             get {
               onSuccess(Future.successful {
                 logger.info("hello")
-                logger.error("mooooo", new RuntimeException("assss"))
                 "result"
-              }) { a: String =>
+              }) { (a: String) =>
                 complete(StatusCodes.OK)
               }
             }

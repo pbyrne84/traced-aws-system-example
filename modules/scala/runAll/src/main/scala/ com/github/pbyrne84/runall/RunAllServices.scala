@@ -10,23 +10,21 @@ object RunAllServices {
 
     println(allProcesses.size)
 
-    allProcesses.tail.foreach {
-      case (_, process) =>
-        println("moo")
+    allProcesses.tail.foreach { case (_, process) =>
+      println("moo")
+      try {
+        val input = new BufferedReader(new InputStreamReader(process.getInputStream))
         try {
-          val input = new BufferedReader(new InputStreamReader(process.getInputStream))
-          try {
-            var line: String = null
-            while ((line = input.readLine) != null) System.out.println(line)
-          } finally if (input != null) input.close()
-        }
+          var line: String = null
+          while ((line = input.readLine) != null) System.out.println(line)
+        } finally if (input != null) input.close()
+      }
     }
 
     scala.sys.addShutdownHook(
-      allProcesses.foreach {
-        case (descriptor, process) =>
-          println(s"Stopping '$descriptor' pid ${process.pid()}")
-          process.destroyForcibly()
+      allProcesses.foreach { case (descriptor, process) =>
+        println(s"Stopping '$descriptor' pid ${process.pid()}")
+        process.destroyForcibly()
       }
     )
 
