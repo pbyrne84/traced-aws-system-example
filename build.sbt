@@ -106,20 +106,22 @@ lazy val tracedPlay = (project in file("modules/scala/tracedPlay"))
     name := "tracedPlay",
     commonSettings,
     fork := true,
-    // javaAgents += "io.kamon" % "kanela-agent" % "2.0.0" % "runtime;compile",
+    javaAgents += "io.kamon" % "kanela-agent" % "2.0.0" % "runtime;compile",
     libraryDependencies ++= List(
       guice,
-      "io.kamon" %% "kamon-pekko-http" % "2.8.1",
-      "io.kamon" %% "kamon-scala-future" % "2.8.1",
       "io.circe" %% "circe-parser" % "0.14.15",
+      "io.kamon" %% "kamon-bundle" % "2.8.1",
       "io.kamon" %% "kamon-zipkin" % "2.8.1",
       "io.kamon" %% "kamon-logback" % "2.8.1",
+      "io.kamon" %% "kamon-pekko-http" % "2.8.1",
+      "io.kamon" %% "kamon-scala-future" % "2.8.1",
+      "net.logstash.logback" % "logstash-logback-encoder" % "9.0",
       "org.playframework" %% "play" % "3.0.10",
       ws,
       scalaTest % Test
     )
   )
-  .enablePlugins(PlayScala)
+  .enablePlugins(PlayScala, JavaAgent)
 
 //"org.apache.pekko" %% "pekko-http" % "1.3.0"
 lazy val tracedAkkaHttp = (project in file("modules/scala/tracedAkkaHttp"))
@@ -139,7 +141,6 @@ lazy val tracedAkkaHttp = (project in file("modules/scala/tracedAkkaHttp"))
       "org.apache.pekko" %% "pekko-stream-testkit" % pekkoHttpVersion,
       "org.apache.pekko" %% "pekko-http-testkit" % pekkoHttpVersion,
       "io.kamon" %% "kamon-bundle" % "2.8.1",
-      // "io.kamon" %% "kamon-apm-reporter" % "2.8.1",
       "io.kamon" %% "kamon-zipkin" % "2.8.1",
       "io.kamon" %% "kamon-logback" % "2.8.1",
       "io.kamon" %% "kamon-pekko-http" % "2.8.1",

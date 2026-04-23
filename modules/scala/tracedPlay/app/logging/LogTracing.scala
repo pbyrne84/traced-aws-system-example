@@ -41,6 +41,7 @@ trait LogTracing extends StrictLogging {
   }
 
   def wrapActionWithLogging[A](action: LogAction)(call: => A): A = {
+    
     Kamon.runWithContextEntry(LoggingLayout.ActionKey, action) {
       call
     }

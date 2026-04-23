@@ -1,7 +1,8 @@
 package controllers
 
+import kamon.Kamon
 import play.api.libs.ws.{WSClient, WSResponse}
-import play.api.mvc._
+import play.api.mvc.*
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -10,19 +11,22 @@ class ExampleTracedController @Inject() (ws: WSClient, cc: ControllerComponents)
     extends AbstractController(cc)
     with TraceInitialisation {
 
+  Kamon.init()
+
   def testSuccess: Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
     traceAsync(controllerActionMarker.showHomePage, request) {
-      childCall.flatMap(_ => Future.successful(Ok("It works!")))
+      childCall.flatMap(_ => Future.successful(Ok(Kamon.currentSpan().trace.toString)))
     }
   }
 
   private def childCall: Future[Boolean] = {
     wrapActionWithLogging(actionMarker.childAction) {
       Future {
-        logger.info("banana")
+        logger.info("play-banana")
       }.flatMap { _ =>
-        val eventualResponse: Future[WSResponse] = ws.url("http://localhost:8080/test-success").get()
-        eventualResponse.map(_ => true)
+        // val eventualResponse: Future[WSResponse] = ws.url("http://localhost:8080/test-success").get()
+
+        Future.successful(true).map(_ => true)
       }
     }
 
