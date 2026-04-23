@@ -11,7 +11,7 @@ object TracingOps {
 
     val asMaybeReadWriteSpan: Option[ReadWriteSpan] = span match {
       case readWriteSpan: ReadWriteSpan => Some(readWriteSpan)
-      case _ => None
+      case _                            => None
     }
 
     def maybeName: Option[String] =

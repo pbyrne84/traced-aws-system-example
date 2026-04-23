@@ -100,6 +100,7 @@ Test / test := (Test / test)
   .value
 
 val scalaTest = "org.scalatest" %% "scalatest" % "3.2.20"
+val openTelemetryVersion = "1.61.0"
 
 lazy val tracedPlay = (project in file("modules/scala/tracedPlay"))
   .settings(
@@ -107,19 +108,43 @@ lazy val tracedPlay = (project in file("modules/scala/tracedPlay"))
     commonSettings,
     fork := true,
     // javaAgents += "io.kamon" % "kanela-agent" % "2.0.0" % "runtime;compile",
+    javaAgents += "io.opentelemetry.javaagent" % "opentelemetry-javaagent" % "2.27.0",
+    javaOptions ++= {
+      val extensionJar = (futureAspect / Compile / packageBin).value
+      println("ssss")
+      println("boop" + extensionJar.getAbsolutePath)
+      println("ssss")
+      Seq(
+        "-Dotel.javaagent.debug=true",
+        "-Dotel.java.global-autoconfigure.enabled=true",
+        "-Dotel.instrumentation.common.experimental.controller-telemetry.enabled=true",
+        "-Dotel.instrumentation.pekko-actor.enabled=true",
+        s"-Dotel.javaagent.extensions=${extensionJar.getAbsolutePath}"
+      )
+    },
     libraryDependencies ++= List(
       guice,
-      "io.kamon" %% "kamon-pekko-http" % "2.8.1",
-      "io.kamon" %% "kamon-scala-future" % "2.8.1",
       "io.circe" %% "circe-parser" % "0.14.15",
+      "io.kamon" %% "kamon-bundle" % "2.8.1",
       "io.kamon" %% "kamon-zipkin" % "2.8.1",
       "io.kamon" %% "kamon-logback" % "2.8.1",
+      "io.kamon" %% "kamon-pekko-http" % "2.8.1",
+      "io.kamon" %% "kamon-scala-future" % "2.8.1",
+      "io.opentelemetry" % "opentelemetry-api" % openTelemetryVersion,
+      "io.opentelemetry" % "opentelemetry-sdk" % openTelemetryVersion,
+      "io.opentelemetry" % "opentelemetry-exporter-logging" % openTelemetryVersion,
+      "io.opentelemetry.semconv" % "opentelemetry-semconv" % "1.40.0",
+      "io.opentelemetry" % "opentelemetry-sdk-extension-autoconfigure" % "1.61.0",
+      "io.opentelemetry.instrumentation" % "opentelemetry-logback-appender-1.0" % "2.27.0-alpha",
+      "io.opentelemetry.instrumentation" % "opentelemetry-logback-mdc-1.0" % "2.27.0-alpha",
+      "net.logstash.logback" % "logstash-logback-encoder" % "9.0",
+      "io.opentelemetry.javaagent" % "opentelemetry-javaagent" % "2.27.0" % "runtime",
       "org.playframework" %% "play" % "3.0.10",
       ws,
       scalaTest % Test
     )
   )
-  .enablePlugins(PlayScala)
+  .enablePlugins(PlayScala, JavaAgent)
 
 //"org.apache.pekko" %% "pekko-http" % "1.3.0"
 lazy val tracedAkkaHttp = (project in file("modules/scala/tracedAkkaHttp"))
@@ -139,7 +164,6 @@ lazy val tracedAkkaHttp = (project in file("modules/scala/tracedAkkaHttp"))
       "org.apache.pekko" %% "pekko-stream-testkit" % pekkoHttpVersion,
       "org.apache.pekko" %% "pekko-http-testkit" % pekkoHttpVersion,
       "io.kamon" %% "kamon-bundle" % "2.8.1",
-      // "io.kamon" %% "kamon-apm-reporter" % "2.8.1",
       "io.kamon" %% "kamon-zipkin" % "2.8.1",
       "io.kamon" %% "kamon-logback" % "2.8.1",
       "io.kamon" %% "kamon-pekko-http" % "2.8.1",
@@ -151,7 +175,6 @@ lazy val tracedAkkaHttp = (project in file("modules/scala/tracedAkkaHttp"))
   )
   .enablePlugins(JavaAgent)
 
-val openTelemetryVersion = "1.61.0"
 val zioLoggingVersion = "2.5.3"
 
 lazy val tracedZioHttp = (project in file("modules/scala/tracedZioHttp"))
@@ -181,6 +204,38 @@ lazy val tracedZioHttp = (project in file("modules/scala/tracedZioHttp"))
     )
   )
 
+lazy val futureAspect = (project in file("modules/scala/futureOpenTracing"))
+  .settings(
+    name := "futureOpenTracing",
+    commonSettings,
+    fork := true, // run tests in their own JVM
+    Test / javaOptions ++= {
+      val extensionJar = (Compile / packageBin).value
+      // Resolve the opentelemetry-javaagent jar from the managed classpath
+      val agentJar = (Compile / dependencyClasspath).value
+        .map(_.data)
+        .find(f => f.getName.startsWith("opentelemetry-javaagent-") && f.getName.endsWith(".jar"))
+        .getOrElse(sys.error("opentelemetry-javaagent jar not found on classpath"))
+      Seq(
+        s"-Dotel.agent.jar=${agentJar.getAbsolutePath}",
+        s"-Dotel.extension.jar=${extensionJar.getAbsolutePath}",
+        // also resolve where java lives so the child JVM uses the same one
+        s"-Dotel.java.home=${System.getProperty("java.home")}"
+      )
+    },
+    libraryDependencies ++= Vector(
+      "io.opentelemetry.javaagent" % "opentelemetry-javaagent" % "2.27.0",
+      "io.opentelemetry.javaagent" % "opentelemetry-javaagent-tooling" % "2.28.1-alpha",
+      "io.opentelemetry.javaagent" % "opentelemetry-javaagent-extension-api" % "2.28.1-alpha",
+      "io.opentelemetry" % "opentelemetry-api" % openTelemetryVersion,
+      "io.opentelemetry" % "opentelemetry-sdk" % openTelemetryVersion,
+      "io.opentelemetry" % "opentelemetry-exporter-logging" % openTelemetryVersion,
+      "net.bytebuddy" % "byte-buddy-agent" % "1.17.5" % Test,
+      "com.google.auto.service" % "auto-service" % "1.1.1",
+      scalaTest % Test
+    )
+  )
+
 lazy val runAll = (project in file("modules/scala/runAll"))
   .settings(
     name := "tracedZioHttp",
@@ -188,7 +243,7 @@ lazy val runAll = (project in file("modules/scala/runAll"))
   )
 
 lazy val allScala = (project in file("."))
-  .aggregate(tracedPlay, tracedAkkaHttp, tracedZioHttp)
+  .aggregate(tracedPlay, tracedAkkaHttp, tracedZioHttp, futureAspect)
   .settings(
     commonSettings,
     publish / skip := true
