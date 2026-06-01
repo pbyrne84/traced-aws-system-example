@@ -1,3 +1,4 @@
+/*
 package io.opentelemetry.javaagent.instrumentation.scalafuture;
 
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
@@ -17,10 +18,12 @@ import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
+*/
 /**
  * Instruments {@code scala.concurrent.impl.Promise$Transformation} (Scala 2.13+), which replaced
  * {@code CallbackRunnable} as the {@link Runnable} backing all Future callbacks.
- */
+ *//*
+
 class ScalaPromiseTransformationInstrumentation implements TypeInstrumentation {
 
     static final String TRANSFORMATION_CLASS_NAME =
@@ -38,10 +41,9 @@ class ScalaPromiseTransformationInstrumentation implements TypeInstrumentation {
 
     @Override
     public void transform(TypeTransformer transformer) {
-        System.out.println("bananana");
-
+        String adviceClassName = getClass().getName() + "$ConstructorAdvice";
         transformer.applyAdviceToMethod(
-                isConstructor(), getClass().getName() + "$ConstructorAdvice");
+                isConstructor(), adviceClassName);
         transformer.applyAdviceToMethod(
                 named("run"), getClass().getName() + "$RunAdvice");
     }
@@ -64,18 +66,16 @@ class ScalaPromiseTransformationInstrumentation implements TypeInstrumentation {
         @Nullable
         @Advice.OnMethodEnter(suppress = Throwable.class, inline = false)
         public static Scope enter(@Advice.This Runnable thiz) {
-            System.out.println("bananana");
             return TaskAdviceHelper.makePropagatedContextCurrent(RUNNABLE_PROPAGATED_CONTEXT, thiz);
         }
 
         @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class, inline = false)
         public static void exit(
                 @Advice.This Runnable thiz, @Advice.Enter @Nullable Scope scope) {
-            System.out.println("bananana");
             if (scope != null) {
                 scope.close();
             }
 
         }
     }
-}
+}*/

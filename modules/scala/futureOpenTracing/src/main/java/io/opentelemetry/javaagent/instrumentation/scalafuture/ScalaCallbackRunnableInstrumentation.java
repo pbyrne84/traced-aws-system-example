@@ -1,3 +1,4 @@
+/*
 package io.opentelemetry.javaagent.instrumentation.scalafuture;
 
 
@@ -18,6 +19,7 @@ import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.
 import static net.bytebuddy.matcher.ElementMatchers.isConstructor;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 
+*/
 /**
  * Instruments {@code scala.concurrent.impl.CallbackRunnable} (Scala 2.10 - 2.12), which is the
  * {@link Runnable} that backs every Scala {@code Future} callback ({@code onComplete}, {@code map},
@@ -27,7 +29,8 @@ import static net.bytebuddy.matcher.ElementMatchers.named;
  * Scala fork-join pools are handled elsewhere; this class explicitly captures the calling context
  * at the moment a Future callback is registered, and re-installs it when that callback runs on the
  * underlying {@code ExecutionContext}.
- */
+ *//*
+
 class ScalaCallbackRunnableInstrumentation implements TypeInstrumentation {
 
     static final String CALLBACK_RUNNABLE_CLASS_NAME = "scala.concurrent.impl.CallbackRunnable";
@@ -82,4 +85,4 @@ class ScalaCallbackRunnableInstrumentation implements TypeInstrumentation {
             }
         }
     }
-}
+}*/

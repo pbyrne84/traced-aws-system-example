@@ -152,6 +152,8 @@ class ScalaPromiseTransformationInstrumentationIntegrationSpec extends AnyFreeSp
         new String(process.getInputStream.readAllBytes(), StandardCharsets.UTF_8)
       val exit = process.waitFor()
 
+      println(output)
+
       withClue(s"child exited $exit, output was:\n$output\n") {
         exit shouldBe 0
       }
