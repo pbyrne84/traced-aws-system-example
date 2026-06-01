@@ -19,7 +19,6 @@ trait TracedRequest {
           newTracedHeaders <- B3HTTPResponseTracing.appendHeadersToResponse(result.headers)
           _ <- ZIO.logInfo("finished request")
         } yield result.copy(headers = newTracedHeaders)
-
       }
       .provide(
         B3JaegerTracer

@@ -1,28 +1,50 @@
 package controllers
 
+import io.opentelemetry.api.trace.Tracer
 import play.api.libs.ws.{WSClient, WSResponse}
-import play.api.mvc._
+import play.api.mvc.*
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class ExampleTracedController @Inject() (ws: WSClient, cc: ControllerComponents)(implicit ec: ExecutionContext)
-    extends AbstractController(cc)
+class ExampleTracedController @Inject() (ws: WSClient, cc: ControllerComponents, tracer: Tracer)(implicit
+    ec: ExecutionContext
+) extends AbstractController(cc)
     with TraceInitialisation {
 
   def testSuccess: Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
     traceAsync(controllerActionMarker.showHomePage, request) {
-      childCall.flatMap(_ => Future.successful(Ok("It works!")))
+
+      val s = tracer
+        .spanBuilder("getProductDetails")
+        .setAttribute("product.id", "sss")
+        .startSpan();
+
+      s.makeCurrent()
+
+      childCall.flatMap { _ =>
+        logger.info("play-banana2 " + s.getSpanContext.getTraceId)
+        s.end()
+        Future.successful(Ok(s.getSpanContext.getTraceId + " " + tracer.isEnabled))
+      }
     }
   }
 
   private def childCall: Future[Boolean] = {
     wrapActionWithLogging(actionMarker.childAction) {
+
       Future {
-        logger.info("banana")
+
+        val s = tracer
+          .spanBuilder("getProductDetails")
+          .setAttribute("product.id", "sss")
+          .startSpan();
+
+        logger.info("play-banana1 " + s.getSpanContext.getTraceId)
       }.flatMap { _ =>
-        val eventualResponse: Future[WSResponse] = ws.url("http://localhost:8080/test-success").get()
-        eventualResponse.map(_ => true)
+        // val eventualResponse: Future[WSResponse] = ws.url("http://localhost:8080/test-success").get()
+
+        Future.successful(true).map(_ => true)
       }
     }
 

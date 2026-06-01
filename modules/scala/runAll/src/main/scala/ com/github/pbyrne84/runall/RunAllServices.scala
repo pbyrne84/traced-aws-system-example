@@ -11,14 +11,12 @@ object RunAllServices {
     println(allProcesses.size)
 
     allProcesses.tail.foreach { case (_, process) =>
-      println("moo")
+      val input = new BufferedReader(new InputStreamReader(process.getInputStream))
       try {
-        val input = new BufferedReader(new InputStreamReader(process.getInputStream))
-        try {
-          var line: String = null
-          while ((line = input.readLine) != null) System.out.println(line)
-        } finally if (input != null) input.close()
-      }
+        var line: String = null
+        while ((line = input.readLine) != null) System.out.println(line)
+      } finally if (input != null) input.close()
+
     }
 
     scala.sys.addShutdownHook(
