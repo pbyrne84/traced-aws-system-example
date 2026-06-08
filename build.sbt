@@ -111,9 +111,6 @@ lazy val tracedPlay = (project in file("modules/scala/tracedPlay"))
     javaAgents += "io.opentelemetry.javaagent" % "opentelemetry-javaagent" % "2.27.0",
     javaOptions ++= {
       val extensionJar = (futureAspect / Compile / packageBin).value
-      println("ssss")
-      println("boop" + extensionJar.getAbsolutePath)
-      println("ssss")
       Seq(
         "-Dotel.javaagent.debug=true",
         "-Dotel.java.global-autoconfigure.enabled=true",
