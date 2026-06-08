@@ -1,3 +1,4 @@
+/*
 package io.opentelemetry.javaagent.instrumentation.scalafuture;
 
 import io.opentelemetry.javaagent.shaded.instrumentation.api.util.VirtualField;
@@ -9,4 +10,4 @@ public final class VirtualFields {
             VirtualField.find(Runnable.class, PropagatedContext.class);
 
     private VirtualFields() {}
-}
+}*/
