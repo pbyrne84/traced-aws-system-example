@@ -1,8 +1,13 @@
 package tracing
 
+import java.math.BigInteger
+import java.security.SecureRandom
+import java.util.Base64
+
 object B3Headers {
 
   private val hexStringGenerator = new HexStringGenerator()
+  private val secureRandom = new SecureRandom()
 
   object name {
     val traceId: String = "X-B3-TraceId"
@@ -25,14 +30,30 @@ object B3Headers {
 
   case class TraceId private[tracing] (value: String)
 
-  private def createUnsafe[A](attempt: String => Either[String, A], length: Int): A = {
-    attempt(hexStringGenerator.randomHex(length)) match {
+  private def createUnsafe[A](attempt: String => Either[String, A], maxLength: Int): A = {
+    def generateRandomHex: String = {
+      val bigInteger: BigInteger = new BigInteger(maxLength * 4, secureRandom)
+      val hexValue: String = bigInteger.toString(16)
+
+      println(s"meow1 $bigInteger")
+      println(s"meow1 $hexValue")
+
+      val length = hexValue.length
+      if (length < maxLength) {
+        "0".padTo(maxLength - hexValue.length, "0").mkString + hexValue
+      } else {
+        hexValue
+      }
+    }
+
+    val paddedHexValue: String = generateRandomHex
+    attempt(paddedHexValue) match {
       case Left(value) =>
-        val secondAttemptValue = hexStringGenerator.randomHex(length)
+        val secondAttemptValue = generateRandomHex
         attempt(secondAttemptValue) match {
           // this block should never be called as we should never fail, especially twice, and would be indicative of a
           // larger problem
-          case Left(value)               => throw new InvalidIdGenerationException(length, secondAttemptValue)
+          case Left(value)               => throw new InvalidIdGenerationException(16, secondAttemptValue)
           case Right(secondAttemptValue) => secondAttemptValue
         }
       case Right(id) => id
