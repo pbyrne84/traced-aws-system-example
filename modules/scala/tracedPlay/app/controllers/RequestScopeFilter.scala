@@ -5,11 +5,12 @@ import io.opentelemetry.api.trace.Tracer
 import io.opentelemetry.context.{Context, Scope}
 import org.slf4j.Logger
 import play.api.mvc.{EssentialAction, EssentialFilter, Result}
+import tracing.RequestTraceContext
 
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
-class RequestScopeFilter @Inject() (tracer: Tracer) extends EssentialFilter {
+class RequestScopeFilter @Inject() (tracer: Tracer, requestTraceContext: RequestTraceContext) extends EssentialFilter {
 
   protected lazy val logger: Logger = org.slf4j.LoggerFactory.getLogger(getClass)
 
@@ -20,7 +21,7 @@ class RequestScopeFilter @Inject() (tracer: Tracer) extends EssentialFilter {
     val baggageScope: Scope = baggage.storeInContext(Context.current()).makeCurrent
 
     val parentContext =
-      RequestTraceContext.parentContextFromRequest(rh)
+      requestTraceContext.parentContextFromRequest(rh)
 
     val span =
       tracer
