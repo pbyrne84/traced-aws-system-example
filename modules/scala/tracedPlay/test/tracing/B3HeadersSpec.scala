@@ -15,7 +15,7 @@ class B3HeadersSpec extends AnyFreeSpecLike {
         TraceId.attempt(valid16CharTraceIdHex) shouldBe Right(TraceId(valid16CharTraceIdHex))
       }
 
-      "should fail on a 32 character non hexadecimal string" in {
+      "should fail on a 16 character non hexadecimal string" in {
         val invalid16CharNonHexTraceId = "gbcdef0123456abc"
         TraceId.attempt(invalid16CharNonHexTraceId) shouldBe Left(
           createFailureMessage(invalid16CharNonHexTraceId)
@@ -31,7 +31,7 @@ class B3HeadersSpec extends AnyFreeSpecLike {
       }
 
       def createFailureMessage(value: String): String =
-        s"id regex ^[a-f|\\d]{32}$$ did not match '$value'"
+        s"id regex ^[a-f|\\d]{16}$$ did not match '$value'"
 
       "should fail on a hex string shorter than 16 characters" in {
         val invalid15CharTraceIdHex = "abcdeef0123456a"

@@ -2,7 +2,6 @@ package tracing
 
 import java.math.BigInteger
 import java.security.SecureRandom
-import java.util.Base64
 
 object B3Headers {
 
