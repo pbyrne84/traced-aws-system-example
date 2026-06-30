@@ -17,11 +17,10 @@ class RequestTraceContext @Inject() (hexStringGenerator: HexStringGenerator) {
     val maybeTraceIdHeader = rh.headers
       .get(B3Headers.name.traceId)
 
-    val unsafe = B3Headers.TraceId.createUnsafe
     val traceId =
       maybeTraceIdHeader
         .flatMap(traceIdHeader => B3Headers.TraceId.attempt(traceIdHeader).toOption)
-        .getOrElse(unsafe)
+        .getOrElse(B3Headers.TraceId.createUnsafe)
 
     val maybeSpanId = rh.headers
       .get(B3Headers.name.spanId)
