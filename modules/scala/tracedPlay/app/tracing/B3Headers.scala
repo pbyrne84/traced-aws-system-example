@@ -34,9 +34,6 @@ object B3Headers {
       val bigInteger: BigInteger = new BigInteger(maxLength * 4, secureRandom)
       val hexValue: String = bigInteger.toString(16)
 
-      println(s"meow1 $bigInteger")
-      println(s"meow1 $hexValue")
-
       val length = hexValue.length
       if (length < maxLength) {
         "0".padTo(maxLength - hexValue.length, "0").mkString + hexValue
